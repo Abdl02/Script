@@ -1,0 +1,4 @@
+requests
+pyyaml
+jsonpath-ng
+python-dotenv
