@@ -1,0 +1,928 @@
+{
+  "PUT /wf/runtime-configs/{objectType}/env/{envType}": [
+    "WorkflowDefinitionModel.workflowDefinition",
+    "WorkflowDefinitionModel.workflowDefinition",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /roles/{roleName}/": [
+    "Composites.composites",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /roles/{roleName}": [
+    "Composites.composites",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /publication-flow-configs/{publicationFlowId}": [
+    "PublicationFlowConfigModel[].configs",
+    "PublicationFlowConfigModel[].configs",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /products/{productId}": [
+    "ApiSpec[].apiSpecs",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /products/{productId}": [
+    "ApiSpec[].apiSpecs",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "ApiSpec[].apiSpecs",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /products/{productId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /products/available-on-dev-portal": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /policy-templates/{policyTemplateId}/": [
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /policy-templates/{policyTemplateId}/": [
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /policy-templates/{policyTemplateId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /policy-templates/{policyTemplateId}": [
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /policy-templates/{policyTemplateId}": [
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /policy-templates/{policyTemplateId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /policies/": [
+    "ExchangePolicyModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /policies/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /policies": [
+    "ExchangePolicyModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /policies": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /plans/{planId}": [
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /plans/{planId}": [
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /plans/{planId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /message-brokers/{messageBrokerId}/": [
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /message-brokers/{messageBrokerId}/": [
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /message-brokers/{messageBrokerId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /message-brokers/{messageBrokerId}": [
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /message-brokers/{messageBrokerId}": [
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /message-brokers/{messageBrokerId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /groups/{groupId}": [
+    "UserRepresentation[].groupMembers",
+    "GroupRepresentation.groupDetails",
+    "RoleRepresentation[].groupRoles",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /groups/{groupId}": [
+    "GroupRepresentation[].subGroups"
+  ],
+  "GET /groups/{groupId}/": [
+    "UserRepresentation[].groupMembers",
+    "GroupRepresentation.groupDetails",
+    "RoleRepresentation[].groupRoles",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /groups/{groupId}/": [
+    "GroupRepresentation[].subGroups"
+  ],
+  "GET /global-policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /global-policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /global-policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /global-policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /global-policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /global-policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /environments/{envId}": [
+    "AssociatedResource[].associatedResources",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /environments/{envId}": [
+    "AssociatedResource[].associatedResources",
+    "AssociatedResource[].associatedResources",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /environments/{envId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /dev-portal-configs/{configId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/{consumerId}": [
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /consumers/{consumerId}": [
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /consumers/{consumerId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/projects/{projectId}": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /consumers/projects/{projectId}": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /consumers/projects/{projectId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/projects/{projectId}/": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /consumers/projects/{projectId}/": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /consumers/projects/{projectId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /authenticators/{authId}": [
+    "AssociatedResource[].associatedResources",
+    "EnvironmentModel.environmentModel",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /authenticators/{authId}": [
+    "AssociatedResource[].associatedResources",
+    "EnvironmentModel.environmentModel",
+    "AssociatedResource[].associatedResources",
+    "EnvironmentModel.environmentModel",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /authenticators/{authId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /api-specs/{apiSpecId}": [
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /api-specs/{apiSpecId}": [
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /api-specs/{apiSpecId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PATCH /api-specs/{apiSpecId}": [
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /api-specs/{apiSpecId}/routes/{routeId}/static-response/{ruleId}": [
+    "StaticResponse.staticResponse"
+  ],
+  "PUT /api-specs/{apiSpecId}/routes/{routeId}/static-response/{ruleId}": [
+    "StaticResponse.staticResponse",
+    "StaticResponse.staticResponse"
+  ],
+  "PUT /api-specs/{apiSpecId}/routes/{routeId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /api-specs/{apiSpecId}/routes/{routeId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /api-specs/{apiSpecId}/routes/{routeId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /api-specs/{apiSpecId}/routes/{routeId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /api-specs/{apiSpecId}/response-policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /api-specs/{apiSpecId}/response-policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /api-specs/{apiSpecId}/response-policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /api-specs/{apiSpecId}/response-policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /api-specs/{apiSpecId}/request-policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /api-specs/{apiSpecId}/request-policies/{policyId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "PUT /api-specs/{apiSpecId}/request-policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /api-specs/{apiSpecId}/request-policies/{policyId}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /wf/processes/{processId}/actions": [
+    "WorkflowDefinitionModel.workflowDefinition",
+    "WorkflowResourceModel.workflowResourceModel",
+    "WorkflowProcessHistoryModel[].history",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /users/{userId}/assign-roles/": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /users/{userId}/assign-roles": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /users/{userId}/assign-groups/": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /users/{userId}/assign-groups": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /users/sync": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /users/sync/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /subscriptions/": [
+    "SubscriptionModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /subscriptions/": [
+    "RuntimeConfigPublicationModel.runtimeConfigPublicationModel",
+    "ProjectModel.project",
+    "PlanModel.plan",
+    "SubscriptionConsumptionRecord[].subscriptionConsumptionRecord",
+    "RuntimeConfigPublicationModel[].publications",
+    "SubscriptionPaymentModel[].payments",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /subscriptions": [
+    "SubscriptionModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /subscriptions": [
+    "RuntimeConfigPublicationModel.runtimeConfigPublicationModel",
+    "ProjectModel.project",
+    "PlanModel.plan",
+    "SubscriptionConsumptionRecord[].subscriptionConsumptionRecord",
+    "RuntimeConfigPublicationModel[].publications",
+    "SubscriptionPaymentModel[].payments",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /revisions/{revId}/restored": [
+    "RevisionObjectSnapshotModel.objectSnapshot",
+    "RuntimeConfigPublicationModel[].publications"
+  ],
+  "POST /publications": [
+    "EnvironmentModel.environment",
+    "AuthenticatorModel[].authenticators",
+    "RuntimeConfigSubPublicationModel[].subPublicationModels",
+    "RevisionChangeModel[].revisionChanges",
+    "WorkflowProcessModel.workflowProcess",
+    "RuntimeConfigPublicationModel.publication",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /publications/global": [
+    "EnvironmentModel.environment",
+    "AuthenticatorModel[].authenticators",
+    "RuntimeConfigSubPublicationModel[].subPublicationModels",
+    "RevisionChangeModel[].revisionChanges",
+    "RuntimeConfigPublishingStatus[].publishingStatuses",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /products/": [
+    "ProductModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /products/": [
+    "ApiSpec[].apiSpecs",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "ApiSpec[].apiSpecs",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /products": [
+    "ProductModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /products": [
+    "ApiSpec[].apiSpecs",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "ApiSpec[].apiSpecs",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /plans/": [
+    "PlanModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /plans/": [
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /plans": [
+    "PlanModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /plans": [
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "ProductPlanPriceModel[].productPlanPrices",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /message-brokers/{messageBrokerId}/subscriptions": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /message-brokers/{messageBrokerId}/subscriptions/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /message-brokers": [
+    "MessageBrokerModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /message-brokers": [
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /message-brokers/": [
+    "MessageBrokerModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /message-brokers/": [
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "MessageBrokerSubscriberModel[].subscribers",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /groups/{groupId}/assign-roles": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /groups/{groupId}/assign-roles/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /groups": [
+    "GroupRepresentation[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /groups": [
+    "GroupRepresentation[].subGroups"
+  ],
+  "GET /groups/": [
+    "GroupRepresentation[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /groups/": [
+    "GroupRepresentation[].subGroups"
+  ],
+  "GET /environments/": [
+    "EnvironmentModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /environments/": [
+    "AssociatedResource[].associatedResources",
+    "AssociatedResource[].associatedResources",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /environments": [
+    "EnvironmentModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /environments": [
+    "AssociatedResource[].associatedResources",
+    "AssociatedResource[].associatedResources",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /consumers/{consumerId}/projects/{projectId}/register-consumer-users/{email}": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /consumers/{consumerId}/projects/{projectId}/register-consumer-users/{email}/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/{consumerId}/projects/": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions"
+  ],
+  "POST /consumers/{consumerId}/projects/": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/{consumerId}/projects": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions"
+  ],
+  "POST /consumers/{consumerId}/projects": [
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "ProjectOauthClient.oauthClient",
+    "ProductModel[].products",
+    "SubscriptionModel[].subscriptions",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /consumers/{consumerId}/actions": [
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/": [
+    "ConsumerModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /consumers/": [
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers": [
+    "ConsumerModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /consumers": [
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /authenticators/{authId}/credentials": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /authenticators/{authId}/credentials": [
+    "WorkflowProcessModel.workflowProcess",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /authenticators/": [
+    "AuthenticatorModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /authenticators/": [
+    "AssociatedResource[].associatedResources",
+    "EnvironmentModel.environmentModel",
+    "AssociatedResource[].associatedResources",
+    "EnvironmentModel.environmentModel",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /authenticators": [
+    "AuthenticatorModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /authenticators": [
+    "AssociatedResource[].associatedResources",
+    "EnvironmentModel.environmentModel",
+    "AssociatedResource[].associatedResources",
+    "EnvironmentModel.environmentModel",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /api-specs/{apiSpecId}/routes/{routeId}/static-response": [
+    "StaticResponseRule[].staticResponseRules"
+  ],
+  "POST /api-specs/{apiSpecId}/routes/{routeId}/static-response": [
+    "StaticResponse.staticResponse",
+    "StaticResponse.staticResponse"
+  ],
+  "POST /api-specs/{apiSpecId}/routes": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/{apiSpecId}/routes/": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/{apiSpecId}/response-policies": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/{apiSpecId}/response-policies/": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/{apiSpecId}/request-policies/": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/{apiSpecId}/request-policies": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/{apiSpecId}/actions": [
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/openapi-files": [
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/openapi-contents": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /api-specs/": [
+    "ApiSpec[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs/": [
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /api-specs": [
+    "ApiSpec[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "POST /api-specs": [
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "MetaData.metaData",
+    "ApiPolicyFilter[].predicates",
+    "ApiPolicyFilter[].requestPolicies",
+    "ApiPolicyFilter[].responsePolicies",
+    "ApiSpecRouteModel[].apiSpecRoutes",
+    "RevisionChangeModel[].revisions",
+    "AssociatedResource[].associatedResources",
+    "RuntimeConfigPublicationModel[].publications",
+    "BindingError[].bindingErrors"
+  ],
+  "PATCH /consumers/{consumerKey}/delete-files": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /wf/runtime-configs": [
+    "RuntimeConfigWorkflowDefinitionModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /wf/processes": [
+    "WorkflowProcessModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /wf/processes/{processId}": [
+    "WorkflowDefinitionModel.workflowDefinition",
+    "WorkflowResourceModel.workflowResourceModel",
+    "WorkflowProcessHistoryModel[].history",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /users/{userId}": [
+    "UserRepresentation.member",
+    "GroupRepresentation[].groups",
+    "RoleRepresentation[].roles",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /users/{userId}/": [
+    "UserRepresentation.member",
+    "GroupRepresentation[].groups",
+    "RoleRepresentation[].roles",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /users": [
+    "UserRepresentation[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /users/": [
+    "UserRepresentation[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /subscriptions/{subscriptionId}": [
+    "ProjectModel.project",
+    "PlanModel.plan",
+    "SubscriptionConsumptionRecord[].subscriptionConsumptionRecord",
+    "RuntimeConfigPublicationModel[].publications",
+    "SubscriptionPaymentModel[].payments",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /subscriptions/view": [
+    "SubscriptionViewDto[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /roles": [
+    "RoleRepresentation[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /roles/": [
+    "RoleRepresentation[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /revisions": [
+    "RevisionChangeModel[].content"
+  ],
+  "GET /revisions/{revId}": [
+    "RevisionObjectSnapshotModel.objectSnapshot",
+    "RuntimeConfigPublicationModel[].publications"
+  ],
+  "GET /publication-flow-configs/next-stage-config": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /publication-flow-configs": [
+    "PublicationFlowConfigModel[].configs",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /publication-flow-configs/": [
+    "PublicationFlowConfigModel[].configs",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /products/top-subscribed": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /policy-templates/": [
+    "ExchangePolicyTemplateModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /policy-templates": [
+    "ExchangePolicyTemplateModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /notifications/": [
+    "NotificationModel[].content"
+  ],
+  "GET /notifications": [
+    "NotificationModel[].content"
+  ],
+  "GET /monetization-analytics": [
+    "ConsumerSpendDetails[].topConsumersBySpend"
+  ],
+  "GET /lookups/{groupId}": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /global-policies/": [
+    "GlobalPolicyModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /global-policies": [
+    "GlobalPolicyModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /dev-portal-configs/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /dev-portal-configs": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/{consumerId}/users": [
+    "ConsumerUserModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/{consumerId}/users/": [
+    "ConsumerUserModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /consumers/{consumerId}/": [
+    "OrganizationModel.organization",
+    "TppDetailsModel.tppDetails",
+    "ContactModel[].contacts",
+    "ProjectModel[].projects",
+    "ConsumerUserModel[].users",
+    "ConsumerAddressModel[].addresses",
+    "ConsumerFileModel[].consumerFiles",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /audit-trails": [
+    "AuditTrailModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /audit-trails/": [
+    "AuditTrailModel[].content",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /api-specs/tags": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /api-specs/static-response/{ruleId}": [
+    "StaticResponseRule[].staticResponseRules"
+  ],
+  "GET /api-specs/routes/static-response": [
+    "ApiSpecRouteStaticResponseModel[].content"
+  ],
+  "GET /analytics/top-consumed-apis": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /analytics/top-consumed-apis/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /analytics/http-exchanges": [
+    "ChartModel[].chartModels",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /analytics/http-exchanges/": [
+    "ChartModel[].chartModels",
+    "BindingError[].bindingErrors"
+  ],
+  "GET /analytics/": [
+    "BindingError[].bindingErrors"
+  ],
+  "GET /analytics": [
+    "BindingError[].bindingErrors"
+  ],
+  "DELETE /authenticators/{authId}/credentials/{credentialId}": [
+    "WorkflowProcessModel.workflowProcess",
+    "BindingError[].bindingErrors"
+  ]
+}

@@ -3,7 +3,6 @@ import re
 
 def extract_dependent_params(schema):
     dependent_params = []
-
     if 'properties' in schema:
         for prop, prop_info in schema['properties'].items():
             if '$ref' in prop_info:
@@ -14,7 +13,6 @@ def extract_dependent_params(schema):
                 ref = prop_info['items']['$ref']
                 schema_name = ref.replace('#/components/schemas/', '')
                 dependent_params.append(f"{schema_name}[].{prop}")
-
     return dependent_params
 
 # Read the Swagger definition from file
@@ -23,16 +21,11 @@ with open('swagger.xml', 'r') as file:
 
 swagger_json = json.loads(swagger_content)
 
-print("All endpoints:")
-for path, path_info in swagger_json['paths'].items():
-    for method in path_info:
-        print(f"{method.upper()} {path}")
+endpoint_dependencies = {}
 
-print("\nEndpoint dependencies:")
 for path, path_info in swagger_json['paths'].items():
     for method, method_info in path_info.items():
         endpoint = f"{method.upper()} {path}"
-
         dependencies = []
 
         # Check request body schema
@@ -42,7 +35,6 @@ for path, path_info in swagger_json['paths'].items():
                     ref = content_info['schema']['$ref']
                     schema_name = ref.replace('#/components/schemas/', '')
                     schema = swagger_json['components']['schemas'][schema_name]
-
                     # Extract dependent parameters from schema properties
                     dependent_params = extract_dependent_params(schema)
                     dependencies.extend(dependent_params)
@@ -56,13 +48,13 @@ for path, path_info in swagger_json['paths'].items():
                             ref = content_info['schema']['$ref']
                             schema_name = ref.replace('#/components/schemas/', '')
                             schema = swagger_json['components']['schemas'][schema_name]
-
                             # Extract dependent parameters from schema properties
                             dependent_params = extract_dependent_params(schema)
                             dependencies.extend(dependent_params)
 
         if dependencies:
-            print(f"{endpoint} depends on:")
-            for param in dependencies:
-                print(f"  - {param}")
-            print()
+            endpoint_dependencies[endpoint] = dependencies
+
+# Save the endpoint dependencies to a JSON file
+with open('endpoint_dependencies.json', 'w') as file:
+    json.dump(endpoint_dependencies, file, indent=2)
