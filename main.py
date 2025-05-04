@@ -17,14 +17,13 @@ def main():
         print("4. Exit")
         choice = input("Enter your choice: ")
 
-        if choice == '1':
-            scenario_name = input("Enter the scenario name to run: ")
-            run(scenario_name)
-        elif choice == '2':
-            scenario_name = input("Enter the scenario name to create: ")
-            scenario = create_new_scenario()
-            if save_scenario(scenario):
-                print(f"Scenario '{scenario.name}' saved successfully.")
+        if choice == '1' or choice == '2':
+            scenario_name = input("Enter the scenario name: ")
+            if choice == '2':
+                scenario = create_new_scenario()
+                save_scenario(scenario)
+            else:
+                run(scenario_name)
         elif choice == '3':
             scenarios = list_scenarios()
             print("Available scenarios:", scenarios)
