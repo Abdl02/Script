@@ -1,13 +1,20 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import json
 from typing import List, Dict, Any
-from .api_request import APIRequest
+from scenrio.api_request import APIRequest
 from util.yaml_mapper.yaml_utils import object_to_yaml_file
 import datetime
 from dotenv import load_dotenv
 import os
+from validation.endpoint_validations import ValidatorFactory
+from validation.random_data_factory import RandomDataFactory
+
 load_dotenv(dotenv_path=".env")
 
 LOCALDEV_BASE_URL = os.getenv("LOCALDEV_ENV_URL", "http://localhost:8099")
+
 
 class TestScenario:
     def __init__(self, name: str, id: str, description: str, version: str, created_at: str, updated_at: str,
@@ -86,10 +93,34 @@ def create_new_scenario():
         method = input("Enter HTTP method (GET/POST/PUT/DELETE/...): ").upper()
         path = input("Enter endpoint path (e.g., 'api-specs'): ").strip().lstrip("/")
         url = f"{LOCALDEV_BASE_URL}/{path}"
-        headers_str = input("Enter headers as JSON (or leave empty): ")
-        headers = json.loads(headers_str) if headers_str else {}
-        body_str = input("Enter request body as JSON (or leave empty): ")
-        body = json.loads(body_str) if body_str else None
+
+        # Get the appropriate validator based on the endpoint path
+        endpoint_type = path.split("/")[0]  # Assuming the first part of the path indicates the endpoint type
+        validator = ValidatorFactory.get_validator(endpoint_type)
+
+        # Generate valid request body based on the endpoint type
+        body = None
+        if method in ["POST", "PUT", "PATCH"]:
+            if validator:
+                if hasattr(validator, 'get_valid_body'):
+                    body = validator.get_valid_body()
+                else:
+                    print(f"Warning: No 'get_valid_body' method found for endpoint type '{endpoint_type}'.")
+                    body_input = input("Enter the request body manually (as JSON or leave empty): ").strip()
+                    try:
+                        if body_input:
+                            body = json.loads(body_input)
+                    except json.JSONDecodeError:
+                        print("Error: Invalid JSON format entered for the request body.")
+            else:
+                print(f"No validator found for endpoint type '{endpoint_type}'. Skipping automatic request body generation.")
+                body_input = input("Enter the request body manually (as JSON or leave empty): ").strip()
+                try:
+                    if body_input:
+                        body = json.loads(body_input)
+                except json.JSONDecodeError:
+                    print("Error: Invalid JSON format entered for the request body.")
+
         save_as = input("Enter a name to save the response data (or leave empty): ")
         assertions = []
         num_assertions = int(input("Enter the number of assertions for this endpoint: "))
@@ -107,7 +138,7 @@ def create_new_scenario():
             "name": request_name,
             "method": method,
             "url": url,
-            "headers": headers,
+            "headers": {},  # You can add headers if needed
             "body": body,
             "save_as": save_as if save_as else None,
             "assertions": assertions,
@@ -123,3 +154,26 @@ def create_new_scenario():
         requests=requests,
     )
     return new_scenario
+
+
+def save_scenario_to_json(scenario: TestScenario, filename: str = "scenario.json"):
+    """Saves a TestScenario object to a JSON file."""
+    with open(filename, "w") as f:
+        json.dump(scenario.to_dict(), f, indent=2)
+    print(f"Scenario '{scenario.name}' saved to '{filename}'")
+
+
+def convert_scenario_json_to_yaml(json_path: str = "scenario.json", yaml_path: str = "scenario.yaml"):
+    """Reads scenario.json and writes it as scenario.yaml"""
+    with open(json_path, "r") as f:
+        data = json.load(f)
+        scenario = TestScenario(**data)
+        object_to_yaml_file(scenario, yaml_path)
+        print(f"Scenario copied from '{json_path}' to '{yaml_path}'")
+
+
+if __name__ == "__main__":
+    new_scenario = create_new_scenario()
+    save_scenario_to_json(new_scenario)
+    convert_scenario_json_to_yaml()
+    print("\nScenario saved to scenario.json")

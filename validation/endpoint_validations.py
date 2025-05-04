@@ -85,7 +85,7 @@ class ApiSpecValidations:
     """Validation rules for ApiSpec endpoints"""
 
     @staticmethod
-    def get_valid_api_spec_body() -> Dict[str, Any]:
+    def get_valid_body() -> Dict[str, Any]:
         """Generate a valid API spec body"""
         name = EndpointValidations.generate_random_string()
         return {
@@ -130,7 +130,7 @@ class EnvironmentModelValidations:
     """Validation rules for Environment endpoints"""
 
     @staticmethod
-    def get_valid_environment_body() -> Dict[str, Any]:
+    def get_valid_body() -> Dict[str, Any]:
         """Generate a valid environment body"""
         return {
             "name": f"Env-{EndpointValidations.generate_random_string()}",
@@ -158,14 +158,16 @@ class AuthenticatorModelValidations:
     """Validation rules for Authenticator endpoints"""
 
     @staticmethod
-    def get_valid_authenticator_body(environment_id: str, auth_type: str = None) -> Dict[str, Any]:
+    def get_valid_body(environment_id: str = None, auth_type: str = None) -> Dict[str, Any]:
         """Generate a valid authenticator body"""
         auth_type = auth_type or random.choice(list(AuthenticatorType)).value
-        return {
+        body = {
             "name": f"{auth_type}-Auth-{EndpointValidations.generate_random_string()}",
             "type": auth_type,
-            "environmentModel": environment_id
         }
+        if environment_id:
+            body["environmentModel"] = environment_id
+        return body
 
     @staticmethod
     def get_valid_basic_credential() -> Dict[str, Any]:
@@ -195,6 +197,11 @@ class AuthenticatorModelValidations:
 
 class ApiPolicyValidations:
     """Validation rules for API Policy endpoints"""
+
+    @staticmethod
+    def get_valid_body() -> Dict[str, Any]:
+        """Generate a valid API policy body (defaulting to request rate limiter)"""
+        return ApiPolicyValidations.get_valid_request_rate_limiter_policy()
 
     @staticmethod
     def get_valid_request_rate_limiter_policy() -> Dict[str, Any]:
@@ -241,7 +248,7 @@ class ConsumerModelValidations:
     """Validation rules for Consumer endpoints"""
 
     @staticmethod
-    def get_valid_consumer_body() -> Dict[str, Any]:
+    def get_valid_body() -> Dict[str, Any]:
         """Generate a valid consumer body"""
         random_string = EndpointValidations.generate_random_string()
         return {
@@ -280,7 +287,7 @@ class ProductModelValidations:
     """Validation rules for Product endpoints"""
 
     @staticmethod
-    def get_valid_product_body(api_spec_ids: List[str] = None) -> Dict[str, Any]:
+    def get_valid_body(api_spec_ids: List[str] = None) -> Dict[str, Any]:
         """Generate a valid product body"""
         return {
             "name": EndpointValidations.generate_random_string(),
@@ -297,7 +304,7 @@ class PlanModelValidations:
     """Validation rules for Plan endpoints"""
 
     @staticmethod
-    def get_valid_plan_body() -> Dict[str, Any]:
+    def get_valid_body() -> Dict[str, Any]:
         """Generate a valid plan body"""
         return {
             "name": EndpointValidations.generate_random_string(),
@@ -315,10 +322,9 @@ class SubscriptionModelValidations:
     """Validation rules for Subscription endpoints"""
 
     @staticmethod
-    def get_valid_subscription_body(plan_id: int, project_name: str = None) -> Dict[str, Any]:
+    def get_valid_body(plan_id: int = None, project_name: str = None) -> Dict[str, Any]:
         """Generate a valid subscription body"""
-        return {
-            "planId": plan_id,
+        body = {
             "projectName": project_name or EndpointValidations.generate_random_string(),
             "renewalType": "MANUAL",
             "trial": False,
@@ -332,10 +338,18 @@ class SubscriptionModelValidations:
                 }
             }
         }
+        if plan_id:
+            body["planId"] = plan_id
+        return body
 
 
 class GlobalPolicyValidations:
     """Validation rules for Global Policy endpoints"""
+
+    @staticmethod
+    def get_valid_body() -> Dict[str, Any]:
+        """Generate a valid global policy body (defaulting to IP filtration)"""
+        return GlobalPolicyValidations.get_valid_ip_filtration_policy()
 
     @staticmethod
     def get_valid_ip_filtration_policy() -> Dict[str, Any]:
@@ -367,7 +381,7 @@ class PublicationFlowValidations:
     """Validation rules for Publication Flow endpoints"""
 
     @staticmethod
-    def get_valid_publication_flow_body() -> Dict[str, Any]:
+    def get_valid_body() -> Dict[str, Any]:
         """Generate a valid publication flow body"""
         return {
             "publicationFlowId": EndpointValidations.PUBLICATION_FLOW_ID,
@@ -401,7 +415,7 @@ class ValidatorFactory:
     def get_validator(endpoint_type: str):
         """Get the appropriate validator based on endpoint type"""
         validators = {
-            "apispec": ApiSpecValidations,
+            "api-specs": ApiSpecValidations,
             "environment": EnvironmentModelValidations,
             "authenticator": AuthenticatorModelValidations,
             "policy": ApiPolicyValidations,
