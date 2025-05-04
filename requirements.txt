@@ -1,4 +1,10 @@
-requests
-pyyaml
-jsonpath-ng
-python-dotenv
+requests==2.31.0
+pyyaml==6.0.1
+python-dotenv==1.0.0
+jsonpath-ng==1.6.0
+ply==3.11
+click==8.1.7
+urllib3==2.2.1
+certifi==2024.2.2
+idna==3.6
+charset-normalizer==3.3.2

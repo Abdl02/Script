@@ -1,10 +1,18 @@
 import json
 from typing import List, Dict, Any
+from request import APIRequest
+from util.yaml_mapper.yaml_utils import object_to_yaml_file
 from .request import APIRequest
 import datetime
+from dotenv import load_dotenv
+import os
+load_dotenv(dotenv_path=".env")
+
+LOCALDEV_BASE_URL = os.getenv("LOCALDEV_ENV_URL", "http://localhost:8099")
 
 class TestScenario:
-    def __init__(self, name: str, id: str, description: str, version: str, created_at: str, updated_at: str, requests: List[Dict[str, Any]]):
+    def __init__(self, name: str, id: str, description: str, version: str, created_at: str, updated_at: str,
+                 requests: List[Dict[str, Any]]):
         self.name = name
         self.id = id
         self.description = description
@@ -33,7 +41,9 @@ class TestScenario:
             except AssertionError as e:
                 print(f"  {request.name}: Assertion failed - {e}")
                 # Optionally stop the scenario execution here
-            
+            except Exception as e:
+                print(f"  {request.name}: Error during execution - {e}")
+                # Optionally stop the scenario execution here
             print("-" * 20)
         return context
 
@@ -60,6 +70,7 @@ class TestScenario:
             ],
         }
 
+
 def create_new_scenario():
     """Prompts the user to create a new test scenario."""
     scenario_name = input("Enter scenario name: ")
@@ -74,7 +85,8 @@ def create_new_scenario():
         print(f"\n--- Endpoint {i + 1} ---")
         request_name = input("Enter request name: ")
         method = input("Enter HTTP method (GET/POST/PUT/DELETE/...): ").upper()
-        url = input("Enter request URL: ")
+        path = input("Enter endpoint path (e.g., 'api-specs'): ").strip().lstrip("/")
+        url = f"{LOCALDEV_BASE_URL}/{path}"
         headers_str = input("Enter headers as JSON (or leave empty): ")
         headers = json.loads(headers_str) if headers_str else {}
         body_str = input("Enter request body as JSON (or leave empty): ")
