@@ -22,8 +22,6 @@ def main():
             run(scenario_name)
         elif choice == '2':
             scenario_name = input("Enter the scenario name to create: ")
-            # Here you would create a new scenario object
-            # For example:
             scenario = create_new_scenario()
             if save_scenario(scenario):
                 print(f"Scenario '{scenario.name}' saved successfully.")
