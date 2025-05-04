@@ -1,6 +1,6 @@
 import json
 from typing import List, Dict, Any
-from request import APIRequest
+from .api_request import APIRequest
 from util.yaml_mapper.yaml_utils import object_to_yaml_file
 import datetime
 from dotenv import load_dotenv
@@ -123,26 +123,3 @@ def create_new_scenario():
         requests=requests,
     )
     return new_scenario
-
-
-def save_scenario_to_json(scenario: TestScenario, filename: str = "scenario.json"):
-    """Saves a TestScenario object to a JSON file."""
-    with open(filename, "w") as f:
-        json.dump(scenario.to_dict(), f, indent=2)
-    print(f"Scenario '{scenario.name}' saved to '{filename}'")
-
-
-def convert_scenario_json_to_yaml(json_path: str = "scenario.json", yaml_path: str = "scenario.yaml"):
-    """Reads scenario.json and writes it as scenario.yaml"""
-    with open(json_path, "r") as f:
-        data = json.load(f)
-        scenario = TestScenario(**data)
-        object_to_yaml_file(scenario, yaml_path)
-        print(f"Scenario copied from '{json_path}' to '{yaml_path}'")
-
-
-if __name__ == "__main__":
-    new_scenario = create_new_scenario()
-    save_scenario_to_json(new_scenario)
-    convert_scenario_json_to_yaml()
-    print("\nScenario saved to scenario.json")
