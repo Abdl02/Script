@@ -1,5 +1,5 @@
 from config.token_generator import get_keycloak_token  
-from config.env import Env
+from config.envModel import Env
 
 def generate_token(env: Env) -> str:
     if not env:

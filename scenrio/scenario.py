@@ -1,8 +1,7 @@
 import json
 from typing import List, Dict, Any
-from request import APIRequest
+from .api_request import APIRequest
 from util.yaml_mapper.yaml_utils import object_to_yaml_file
-from .request import APIRequest
 import datetime
 from dotenv import load_dotenv
 import os

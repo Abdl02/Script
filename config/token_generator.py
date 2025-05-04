@@ -1,7 +1,7 @@
 import requests
 import json
 from typing import Dict, Any
-from config.env import Env, DEFAULTS
+from config.envModel import Env, DEFAULTS
 
 def get_keycloak_token(env :Env) -> str:
     url = f"{env.urlKeycloak}/realms/{env.realm}/protocol/openid-connect/token"
