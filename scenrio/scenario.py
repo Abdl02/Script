@@ -1,10 +1,17 @@
 import json
 from typing import List, Dict, Any
 from request import APIRequest
+from util.yaml_mapper.yaml_utils import object_to_yaml_file
 import datetime
+from dotenv import load_dotenv
+import os
+load_dotenv(dotenv_path=".env")
+
+LOCALDEV_BASE_URL = os.getenv("LOCALDEV_ENV_URL", "http://localhost:8099")
 
 class TestScenario:
-    def __init__(self, name: str, id: str, description: str, version: str, created_at: str, updated_at: str, requests: List[Dict[str, Any]]):
+    def __init__(self, name: str, id: str, description: str, version: str, created_at: str, updated_at: str,
+                 requests: List[Dict[str, Any]]):
         self.name = name
         self.id = id
         self.description = description
@@ -62,6 +69,7 @@ class TestScenario:
             ],
         }
 
+
 def create_new_scenario():
     """Prompts the user to create a new test scenario."""
     scenario_name = input("Enter scenario name: ")
@@ -76,7 +84,8 @@ def create_new_scenario():
         print(f"\n--- Endpoint {i + 1} ---")
         request_name = input("Enter request name: ")
         method = input("Enter HTTP method (GET/POST/PUT/DELETE/...): ").upper()
-        url = input("Enter request URL: ")
+        path = input("Enter endpoint path (e.g., 'api-specs'): ").strip().lstrip("/")
+        url = f"{LOCALDEV_BASE_URL}/{path}"
         headers_str = input("Enter headers as JSON (or leave empty): ")
         headers = json.loads(headers_str) if headers_str else {}
         body_str = input("Enter request body as JSON (or leave empty): ")
@@ -115,13 +124,25 @@ def create_new_scenario():
     )
     return new_scenario
 
+
 def save_scenario_to_json(scenario: TestScenario, filename: str = "scenario.json"):
     """Saves a TestScenario object to a JSON file."""
     with open(filename, "w") as f:
         json.dump(scenario.to_dict(), f, indent=2)
     print(f"Scenario '{scenario.name}' saved to '{filename}'")
 
+
+def convert_scenario_json_to_yaml(json_path: str = "scenario.json", yaml_path: str = "scenario.yaml"):
+    """Reads scenario.json and writes it as scenario.yaml"""
+    with open(json_path, "r") as f:
+        data = json.load(f)
+        scenario = TestScenario(**data)
+        object_to_yaml_file(scenario, yaml_path)
+        print(f"Scenario copied from '{json_path}' to '{yaml_path}'")
+
+
 if __name__ == "__main__":
     new_scenario = create_new_scenario()
     save_scenario_to_json(new_scenario)
+    convert_scenario_json_to_yaml()
     print("\nScenario saved to scenario.json")
