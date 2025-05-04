@@ -1,0 +1,65 @@
+created_at: '2025-05-04T13:24:33.706137Z'
+description: fewfe
+id: g5
+name: efare
+requests:
+- assertions:
+  - type: json_path
+    value: '1'
+  body:
+    addVersionToContextPath: true
+    authType: API_KEY
+    backendServiceUrl: https://jsonplaceholder.typicode.com
+    contextPath: /f60585620c24
+    description: Description for f60585620c24
+    metaData:
+      category: Test Category
+      owner: 4f59d9e1af2e
+      tags:
+      - tag-40a4fcbaed4a
+      - tag-847e4c813b78
+      - tag-8b366e7bb5c0
+      version: 6.4.2
+    name: f60585620c24
+    predicates: []
+    requestPolicies: []
+    responsePolicies: []
+    status: DRAFT
+    style: GRPC
+    type: PARTNER
+  headers: {}
+  method: POST
+  name: create
+  save_as: create_api
+  url: http://localhost:8099/api-specs
+- assertions:
+  - type: json_path
+    value: '1'
+  body:
+    addVersionToContextPath: true
+    authType: BASIC
+    backendServiceUrl: https://jsonplaceholder.typicode.com
+    contextPath: /8c26202ed605
+    description: Description for 8c26202ed605
+    metaData:
+      category: Test Category
+      owner: ab17e29b21e5
+      tags:
+      - tag-f5e81afd1fe7
+      - tag-3ae12e585521
+      - tag-95764af48ced
+      version: 8.0.5
+    name: 8c26202ed605
+    predicates: []
+    requestPolicies: []
+    responsePolicies: []
+    status: DRAFT
+    style: GRPC
+    type: PARTNER
+  headers: {}
+  method: PUT
+  name: edit
+  save_as: edit
+  url: http://localhost:8099/api-specs
+updated_at: '2025-05-04T13:24:33.706137Z'
+version: '11'

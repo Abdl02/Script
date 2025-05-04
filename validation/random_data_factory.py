@@ -281,54 +281,48 @@ if __name__ == "__main__":
             "createdDateTime": "",
             "tags": []
         },
-        "apiSpecRoutes": []
+        "addVersionToContextPath": True,
+        "predicates": [],
+        "requestPolicies": [],
+        "responsePolicies": []
     }
 
-    # Field specifications
-    field_specs = {
-        "name": {
-            "type": DataType.STRING.value,
-            "constraints": {"min_length": 5, "max_length": 20}
-        },
-        "contextPath": {
-            "type": DataType.STRING.value,
-            "constraints": {"pattern": "/path"}
-        },
-        "backendServiceUrl": {
-            "type": DataType.URL.value
-        },
-        "status": {
-            "type": DataType.ENUM.value,
-            "constraints": {"values": ["DRAFT", "PUBLISHED", "UNPUBLISHED", "DELETED"]}
-        },
-        "type": {
-            "type": DataType.ENUM.value,
-            "constraints": {"values": ["PUBLIC", "PRIVATE", "PARTNER"]}
-        },
-        "style": {
-            "type": DataType.ENUM.value,
-            "constraints": {"values": ["REST", "SOAP", "WEB_SOCKET", "GRPC"]}
-        },
-        "authType": {
-            "type": DataType.ENUM.value,
-            "constraints": {"values": ["BASIC", "OAUTH", "API_KEY"]}
-        },
+    # Example field specifications (can be loaded from a config file)
+    api_spec_field_specs = {
+        "name": {"type": DataType.STRING.value, "constraints": {"min_length": 5, "max_length": 20}},
+        "description": {"type": DataType.STRING.value, "constraints": {"min_length": 10, "max_length": 100}},
+        "contextPath": {"type": DataType.STRING.value, "constraints": {"pattern": "^/"}},
+        "backendServiceUrl": {"type": DataType.URL.value},
+        "status": {"type": DataType.ENUM.value, "constraints": {"values": ["DRAFT", "PUBLISHED", "DEPRECATED"]}},
+        "type": {"type": DataType.ENUM.value, "constraints": {"values": [e.value for e in ApiType]}},
+        "style": {"type": DataType.ENUM.value, "constraints": {"values": [e.value for e in ApiStyle]}},
+        "authType": {"type": DataType.ENUM.value, "constraints": {"values": [e.value for e in AuthenticatorType]}},
         "metaData": {
-            "version": {"type": DataType.STRING.value, "constraints": {"pattern": "version"}},
-            "owner": {"type": DataType.STRING.value, "constraints": {"min_length": 5}},
+            "version": {"type": DataType.STRING.value, "constraints": {"pattern": r"^\d+\.\d+\.\d+$"}},
+            "owner": {"type": DataType.STRING.value, "constraints": {"min_length": 3, "max_length": 50}},
             "createdDateTime": {"type": DataType.DATETIME.value},
-            "tags": {
-                "type": DataType.ARRAY.value,
-                "constraints": {
-                    "min_length": 1,
-                    "max_length": 5,
-                    "item_type": DataType.STRING.value,
-                    "item_constraints": {"min_length": 3, "max_length": 10}
-                }
-            }
-        }
+            "tags": {"type": DataType.ARRAY.value, "constraints": {"item_type": DataType.STRING.value}}
+        },
+        "addVersionToContextPath": {"type": DataType.BOOLEAN.value}
     }
 
-    # Fill the template with random data
-    filled_data = factory.fill_template(api_spec_template, field_specs)
-    print(json.dumps(filled_data, indent=2))
+    filled_api_spec = factory.fill_template(api_spec_template, api_spec_field_specs)
+    print("Filled API Spec Template:")
+    print(json.dumps(filled_api_spec, indent=2))
+
+    # Example of generating a random email
+    random_email = factory.generate_email()
+    print("\nRandom Email:", random_email)
+
+    # Example of generating a random UUID
+    random_uuid = factory.generate_random_string(pattern="uuid")
+    print("Random UUID:", random_uuid)
+
+    # Example of generating a random phone number
+    random_phone = factory.generate_phone()
+    print("Random Phone:", random_phone)
+
+    # Example of generating a random JSON object
+    random_json = factory.generate_json_value()
+    print("\nRandom JSON Value:")
+    print(json.dumps(random_json, indent=2))
