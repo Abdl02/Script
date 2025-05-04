@@ -1,8 +1,6 @@
 import os
 from typing import Dict
-
-# Keycloak -> url, realm, clientId, clientSecret
-# envUrl -> url of the environment
+from dotenv import load_dotenv
 
 class Env:
     def __init__(self, clientId: str, clientSecret: str, urlKeycloak: str, realm: str, envUrl: str):
@@ -14,6 +12,10 @@ class Env:
 
     def __str__(self):
         return f"Env(clientId={self.clientId}, clientSecret={self.clientSecret}, urlKeycloak={self.urlKeycloak}, realm={self.realm}, envUrl={self.envUrl})"
+
+
+# Load environment variables from the .env file
+load_dotenv()
 
 # Default values for environments using environment variables
 DEFAULTS = {
