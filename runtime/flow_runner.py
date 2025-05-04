@@ -1,17 +1,61 @@
-class FlowRunner{
-    def __init__(self, flow):
-        self.flow = flow
-        self.state = None
-        self.result = None
-        self.exception = None
-        self.start_time = None
-        self.end_time = None
-        self.status = None
-        self._initialize_flow()
-        self._initialize_state()
-        self._initialize_result()
-        self._initialize_exception()
-        self._initialize_start_time()
-        self._initialize_end_time()
-        self._initialize_status()
-}
+from util.yaml_mapper import *
+from util.config_loader import *
+from config.env import *
+import os
+from scenrio.scenario import *
+
+
+def run(scenarioName: str) -> bool:
+    """
+    Run the specified scenario.
+    """
+    try:
+        # Get the full path of the scenario file
+        path = get_scenario_path(scenarioName)
+
+        # Check if the YAML file exists
+        is_yaml_exists(path)
+
+        # Load the scenario YAML file
+        scenario = yaml_file_to_object(path, TestScenario)
+
+        # Execute the scenario
+        scenario.execute()
+
+        return True  # Indicate success
+    except Exception as e:
+        print(f"Error while running scenario: {e}")
+        return False  # Indicate failure
+
+def save_scenario(scenario: TestScenario) -> bool:
+    """
+    Save the scenario to a YAML file.
+    """
+    try:
+        # Get the full path of the scenario file
+        path = get_scenario_path(scenario.name)
+
+        # Save the scenario to the YAML file
+        object_to_yaml_file(scenario, path)
+
+        return True  # Indicate success
+    except Exception as e:
+        print(f"Error while saving scenario: {e}")
+        return False  # Indicate failure
+
+def get_scenario_path(scenarioName: str) -> str:
+    """
+    Get the full path of the scenario file.
+    """
+    scenario_save_dir = os.getenv("SCENARIO_SAVE_DIR", "./")
+    os.makedirs(scenario_save_dir, exist_ok=True)
+    return os.path.join(scenario_save_dir, handleExtension(scenarioName))
+
+
+def handleExtension(scenarioName: str) -> str:
+    """
+    Handle the extension of the scenario name.
+    """
+    if not scenarioName.endswith(".yaml"):
+        scenarioName += ".yaml"
+    return scenarioName

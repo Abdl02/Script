@@ -27,3 +27,16 @@ def yaml_file_to_object(file_path: str, obj_type: Type) -> Any:
         raise ValueError(f"Error converting YAML file to object: {e}")
     except TypeError as e:
         raise ValueError(f"Error initializing object of type {obj_type}: {e}")
+
+
+def is_yaml_exists(file_path: str) -> bool:
+    """
+    Check if a YAML file exists.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            return True
+    except FileNotFoundError:
+        return False
+    except Exception as e:
+        raise ValueError(f"Error checking if YAML file exists: {e}")

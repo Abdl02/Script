@@ -1,6 +1,6 @@
 import json
 from typing import List, Dict, Any
-from request import APIRequest
+from .request import APIRequest
 import datetime
 
 class TestScenario:
@@ -33,9 +33,7 @@ class TestScenario:
             except AssertionError as e:
                 print(f"  {request.name}: Assertion failed - {e}")
                 # Optionally stop the scenario execution here
-            except Exception as e:
-                print(f"  {request.name}: Error during execution - {e}")
-                # Optionally stop the scenario execution here
+            
             print("-" * 20)
         return context
 
@@ -114,14 +112,3 @@ def create_new_scenario():
         requests=requests,
     )
     return new_scenario
-
-def save_scenario_to_json(scenario: TestScenario, filename: str = "scenario.json"):
-    """Saves a TestScenario object to a JSON file."""
-    with open(filename, "w") as f:
-        json.dump(scenario.to_dict(), f, indent=2)
-    print(f"Scenario '{scenario.name}' saved to '{filename}'")
-
-if __name__ == "__main__":
-    new_scenario = create_new_scenario()
-    save_scenario_to_json(new_scenario)
-    print("\nScenario saved to scenario.json")

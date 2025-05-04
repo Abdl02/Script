@@ -1,6 +1,8 @@
 import requests
 import json
 from typing import Dict, Any, Optional
+from util.config_loader import *
+from config.config import Config
 
 class APIRequest:
     def __init__(self, name: str, method: str, url: str, headers: Optional[Dict[str, str]] = None, body: Optional[Any] = None, save_as: Optional[str] = None, assertions: Optional[list[Dict[str, Any]]] = None):
@@ -16,6 +18,11 @@ class APIRequest:
 
     def execute(self, context: Dict[str, Any]) -> None:
         """Executes the API request using the provided context for templating."""
+        
+        token = generate_token(Config.selected_env)
+        if token:
+            self.headers["Authorization"] = f"Bearer {token}"
+
         templated_url = self._template(self.url, context)
         templated_headers = {k: self._template(v, context) for k, v in self.headers.items()}
         templated_body = self._template_body(self.body, context)
