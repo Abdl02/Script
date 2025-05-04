@@ -3,6 +3,8 @@
 from scenrio.scenario import *
 from util.yaml_mapper.yaml_mapper import is_yaml_exists
 from util.yaml_mapper.yaml_utils import yaml_file_to_object
+from util.yaml_mapper.yaml_utils import object_to_yaml_file
+import os
 
 
 def run(scenarioName: str) -> bool:
@@ -42,6 +44,19 @@ def save_scenario(scenario: TestScenario) -> bool:
     except Exception as e:
         print(f"Error while saving scenario: {e}")
         return False  # Indicate failure
+
+def list_scenarios() -> list:
+    """
+    List all scenarios in the scenario directory.
+    """
+    scenario_save_dir = os.getenv("SCENARIO_SAVE_DIR", "./")
+    os.makedirs(scenario_save_dir, exist_ok=True)
+
+    # List all YAML files in the scenario directory
+    scenario_files = [f for f in os.listdir(scenario_save_dir) if f.endswith('.yaml')]
+
+    # Return the list of scenario names without extensions
+    return [os.path.splitext(f)[0] for f in scenario_files]
 
 def get_scenario_path(scenarioName: str) -> str:
     """
