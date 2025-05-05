@@ -1,0 +1,41 @@
+name: "sa"
+id: "5"
+description: "sfdds"
+version: "fd"
+created_at: "2025-05-04T10:21:54.568579Z"
+updated_at: "2025-05-04T10:21:54.568579Z"
+requests:
+  - name: "create api"
+    method: "POST"
+    url: "{{dgateConsoleApisBaseUrl}}/api-specs"
+    headers: {}
+    body:
+      name: "hfddi"
+      description: "Fault cxManagement API"
+      contextPath: "/tedst-hi"
+      type: "PUBLIC"
+      style: "REST"
+      metaData:
+        version: "1.5"
+      authType: "BASIC"
+    save_as: "create_api"
+    assertions:
+      - type: "json_path"
+        value: "1"
+  - name: "edit api"
+    method: "PUT"
+    url: "{{dgateConsoleApisBaseUrl}}/api-specs/{{create_api.apiSpecId}}"
+    headers: {}
+    body:
+      name: "hfddi"
+      description: "Fault cxManagement API"
+      contextPath: "/tedst-hi"
+      type: "PUBLIC"
+      style: "REST"
+      metaData:
+        version: "1.5"
+      authType: "KEYLESS"
+    save_as: "edit_api"
+    assertions:
+      - type: "json_path"
+        value: "1"

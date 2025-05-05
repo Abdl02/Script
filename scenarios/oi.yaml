@@ -1,0 +1,48 @@
+created_at: '2025-05-04T12:01:30.931932Z'
+description: "API Management Test Scenario"
+id: "test-001"
+name: "api_management_scenario"
+requests:
+- name: "create_api_spec"
+  method: "POST"
+  url: "http://localhost:8099/api-specs"
+  headers:
+    Content-Type: "application/json"
+  body:
+    name: "nkjnkjnkj3"
+    description: "Test API for automation"
+    contextPath: "/tesjhj3"
+    type: "PUBLIC"
+    style: "REST"
+    metaData:
+      version: "1.0"
+      owner: "automation_test"
+      tags: ["test", "automation"]
+    authType: "BASIC"
+  save_as: "create_api_response"
+  assertions:
+    - type: "status_code"
+      value: "200"
+
+- name: "update_api_spec"
+  method: "PUT"
+  url: "http://localhost:8099/api-specs/{{create_api_spec.apiSpecId}}/{{create_api_spec.metaData.version}}"
+  headers:
+    Content-Type: "application/json"
+  body:
+    name: "{{create_api_spec.metaData.owner}}"
+    description: "Updated test API for automation"
+    contextPath: "/test-api-v1"
+    type: "PUBLIC"
+    style: "REST"
+    metaData:
+      version: "{{create_api_spec.contextPath}}"
+      owner: "automation_test"
+      tags: "{{create_api_spec.metaData.tags}}"
+    authType: "KEYLESS"
+  save_as: "update_api_response"
+  assertions:
+    - type: "status_code"
+      value: "200"
+updated_at: '2025-05-04T12:01:30.931932Z'
+version: "1.0"
