@@ -1,11 +1,15 @@
 import requests
 import json
+import re
 from typing import Dict, Any, Optional
 from util.config_loader import *
 from config.config import Config
 
+
 class APIRequest:
-    def __init__(self, name: str, method: str, url: str, headers: Optional[Dict[str, str]] = None, body: Optional[Any] = None, save_as: Optional[str] = None, assertions: Optional[list[Dict[str, Any]]] = None):
+    def __init__(self, name: str, method: str, url: str, headers: Optional[Dict[str, str]] = None,
+                 body: Optional[Any] = None, save_as: Optional[str] = None,
+                 assertions: Optional[list[Dict[str, Any]]] = None):
         self.name = name
         self.method = method.upper()
         self.url = url
@@ -54,6 +58,17 @@ class APIRequest:
             else:
                 raise ValueError(f"Unsupported HTTP method: {self.method}")
 
+            # Save response data if save_as is specified
+            if self.save_as:
+                try:
+                    response_json = self.response.json()
+                    self.saved_data = response_json
+                    # Update context immediately after saving
+                    context[self.save_as] = response_json
+                except json.JSONDecodeError:
+                    self.saved_data = {"status": self.response.status_code, "text": self.response.text}
+                    context[self.save_as] = self.saved_data
+
             # Record response details
             execution_details["details"]["response"] = {
                 "status_code": self.response.status_code,
@@ -65,7 +80,8 @@ class APIRequest:
                 response_json = self.response.json()
                 execution_details["details"]["response"]["body"] = response_json
             except json.JSONDecodeError:
-                execution_details["details"]["response"]["body"] = self.response.text[:500] if self.response.text else ""
+                execution_details["details"]["response"]["body"] = self.response.text[
+                                                                   :500] if self.response.text else ""
 
             formatted_output = self.format_request_response_details(
                 execution_details, templated_url, templated_headers, templated_body
@@ -80,10 +96,50 @@ class APIRequest:
             raise e
 
     def _template(self, value: str, context: Dict[str, Any]) -> str:
-        """Simple templating for URLs and headers using the context."""
+        """Enhanced templating for URLs and headers using the context, supporting both {{key}} and ${key} syntax."""
+        if not value or not isinstance(value, str):
+            return value
+
+        # Debug: Print what we're trying to resolve
+        print(f"DEBUG: Original value: {value}")
+        print(f"DEBUG: Context: {json.dumps(context, indent=2)}")
+
+        # Handle ${key.subkey} references
+        def replace_dollar_reference(match):
+            reference = match.group(1)
+            print(f"DEBUG: Trying to resolve reference: {reference}")
+            try:
+                # Split reference into parts (e.g., "create_api_my.id" -> ["create_api_my", "id"])
+                parts = reference.split('.')
+                val = context
+
+                # Navigate through the context
+                for part in parts:
+                    print(f"DEBUG: Looking for part '{part}' in: {type(val)}")
+                    if isinstance(val, dict) and part in val:
+                        val = val[part]
+                        print(f"DEBUG: Found value: {val}")
+                    else:
+                        # Reference not found, return the original reference
+                        print(f"DEBUG: Part '{part}' not found!")
+                        return match.group(0)
+
+                # Return the resolved value
+                print(f"DEBUG: Successfully resolved to: {str(val)}")
+                return str(val)
+            except Exception as e:
+                print(f"Error resolving reference ${reference}: {e}")
+                return match.group(0)
+
+        # Handle ${...} pattern
+        value = re.sub(r'\$\{([^}]+)\}', replace_dollar_reference, value)
+
+        # Handle {{...}} pattern (backward compatibility)
         for key, val in context.items():
             placeholder = f"{{{{{key}}}}}"
             value = value.replace(placeholder, str(val))
+
+        print(f"DEBUG: Final resolved value: {value}")
         return value
 
     def _template_body(self, body: Optional[Any], context: Dict[str, Any]) -> Optional[Any]:
@@ -93,7 +149,7 @@ class APIRequest:
                 body_dict = json.loads(body)
                 return self._template_recursive(body_dict, context)
             except json.JSONDecodeError:
-                return self._template(body, context) # Basic string templating if not JSON
+                return self._template(body, context)  # Basic string templating if not JSON
         elif isinstance(body, dict):
             return self._template_recursive(body, context)
         elif isinstance(body, list):
@@ -121,7 +177,8 @@ class APIRequest:
 
             if assertion_type == "status_code":
                 if self.response.status_code != int(expected_value):
-                    raise AssertionError(f"Assertion failed for '{self.name}': Expected status code {expected_value}, got {self.response.status_code}")
+                    raise AssertionError(
+                        f"Assertion failed for '{self.name}': Expected status code {expected_value}, got {self.response.status_code}")
             elif assertion_type == "json_path":
                 path = assertion.get("path")
                 try:
@@ -129,14 +186,17 @@ class APIRequest:
                     jsonpath_expression = parse(path)
                     match = jsonpath_expression.find(self.response.json())
                     if not match or str(match[0].value) != expected_value:
-                        raise AssertionError(f"Assertion failed for '{self.name}': JSON path '{path}' expected value '{expected_value}', got '{match[0].value if match else None}'")
+                        raise AssertionError(
+                            f"Assertion failed for '{self.name}': JSON path '{path}' expected value '{expected_value}', got '{match[0].value if match else None}'")
                 except ImportError:
                     print("Warning: 'jsonpath-ng' library not installed. JSON path assertions will be skipped.")
                 except json.JSONDecodeError:
-                    raise AssertionError(f"Assertion failed for '{self.name}': Cannot decode response as JSON for JSON path assertion.")
+                    raise AssertionError(
+                        f"Assertion failed for '{self.name}': Cannot decode response as JSON for JSON path assertion.")
             elif assertion_type == "response_body_contains":
                 if expected_value not in self.response.text:
-                    raise AssertionError(f"Assertion failed for '{self.name}': Response body does not contain '{expected_value}'")
+                    raise AssertionError(
+                        f"Assertion failed for '{self.name}': Response body does not contain '{expected_value}'")
             # Add other assertion types as needed
             else:
                 print(f"Warning: Unknown assertion type '{assertion_type}' for request '{self.name}'.")
