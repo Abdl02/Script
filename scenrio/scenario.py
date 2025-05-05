@@ -600,8 +600,7 @@ def extract_fields_from_schema(schema: Dict[str, Any]) -> List[str]:
     return fields
 
 
-def add_field_from_path(body: Dict[str, Any], field_path: str, available_saved_data: Dict[str, Any] = None) -> Dict[
-    str, Any]:
+def add_field_from_path(body: Dict[str, Any], field_path: str, available_saved_data: Dict[str, Any] = None) -> Dict[str, Any]:
     """Add a field to the body using a specific path."""
     print(f"\nAdding field: {field_path}")
 
@@ -761,8 +760,7 @@ def reference_previous_data(field_path: str, available_saved_data: Dict[str, Any
         return None
 
 # Modify enhanced_body_creation function
-def enhanced_body_creation(method: str, path: str, body: Dict[str, Any] = None, context: Dict[str, Any] = None) -> Dict[
-    str, Any]:
+def enhanced_body_creation(method: str, path: str, body: Dict[str, Any] = None, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """Enhanced body creation with templates and customization."""
     endpoint_type = path.split("/")[0]
 
@@ -830,8 +828,7 @@ def enhanced_body_creation(method: str, path: str, body: Dict[str, Any] = None, 
 
 
 # Update the customize_body_fields for empty bodies when user wants to add specific fields
-def customize_body_fields(body: Dict[str, Any], body_type: str = None, context: Dict[str, Any] = None) -> Dict[
-    str, Any]:
+def customize_body_fields(body: Dict[str, Any], body_type: str = None, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """Allow users to manually add or modify body fields after auto-generation."""
     if not body:  # Handle empty body - user wants to add specific fields
         # Get sample body to show available fields

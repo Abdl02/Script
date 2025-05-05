@@ -1,9 +1,7 @@
 
 
 from scenrio.scenario import *
-from util.yaml_mapper.yaml_mapper import is_yaml_exists
-from util.yaml_mapper.yaml_utils import yaml_file_to_object
-from util.yaml_mapper.yaml_utils import object_to_yaml_file
+from util.yaml_utils import *
 import os
 
 
