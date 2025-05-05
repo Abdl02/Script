@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { APIRequest, Assertion } from '../types/models';
+import { APIRequest, Assertion } from 'types/models';
 import { Card, Typography, TextField, Select, MenuItem, IconButton, FormControl, InputLabel, Box, Button, Grid } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { FieldSelector } from './FieldSelector';
@@ -21,8 +21,8 @@ export const RequestEditor: React.FC<RequestEditorProps> = ({ request, onChange,
   };
 
   const addAssertion = () => {
-    const newAssertions = [...(request.assertions || []), {
-      type: 'status_code',
+    const newAssertions: Assertion[] = [...(request.assertions || []), {
+      type: 'status_code', // Explicitly typed as Assertion['type']
       value: '200'
     }];
     onChange({ assertions: newAssertions });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Paper, Tabs, Tab } from '@mui/material';
-import { JsonViewer } from '@textea/json-viewer';
+import JsonView from '@uiw/react-json-view';
 
 interface PreviewProps {
   data: any;
@@ -25,11 +25,16 @@ export const Preview: React.FC<PreviewProps> = ({ data, title = "Preview" }) => 
 
       <Box sx={{ mt: 2 }}>
         {tabValue === 0 && (
-          <JsonViewer
+          <JsonView  // Changed from JsonViewer to JsonView
             value={data}
-            theme="light"
-            defaultInspectDepth={2}
+            collapsed={2}
             displayDataTypes={false}
+            style={{
+              backgroundColor: 'transparent',
+              padding: '10px',
+              borderRadius: '4px',
+              border: '1px solid #ccc'
+            }}
           />
         )}
         {tabValue === 1 && (

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
-import { TestScenario } from '@types/models';
+import { TestScenario } from 'types/models';
 
 interface AppContextType {
   currentScenario: TestScenario | null;

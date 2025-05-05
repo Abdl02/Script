@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../api/client';
-import { Field } from '../types/models';
+import { api } from 'api/client';
+import { Field } from 'types/models';
 import { Box, Typography, Button, Chip, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+
+const getValueAtPath = (obj: any, path: string): any => {
+  return path.split('.').reduce((acc, part) => {
+    if (part.includes('[') && part.includes(']')) {
+      const fieldName = part.split('[')[0];
+      const index = parseInt(part.split('[')[1].replace(']', ''));
+      return acc?.[fieldName]?.[index];
+    }
+    return acc?.[part];
+  }, obj);
+};
 
 interface FieldSelectorProps {
   endpointType: string;
@@ -110,13 +121,13 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
           </Typography>
 
           {Array.from(selectedFields).map(fieldPath => {
-            const value = getValueAtPath(value, fieldPath);
+            const fieldValue = getValueAtPath(value, fieldPath);
             return (
               <Box key={fieldPath} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
                 <Typography sx={{ minWidth: 200 }}>{fieldPath}</Typography>
                 <TextField
                   size="small"
-                  value={value || ''}
+                  value={fieldValue || ''}
                   onChange={(e) => updateFieldValue(fieldPath, e.target.value)}
                   placeholder={`Enter ${fieldPath}`}
                   sx={{ flexGrow: 1 }}

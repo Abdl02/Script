@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { TestScenario, Field } from '../types/models';
+import type { TestScenario, Field } from 'types/models';
 
 const API_BASE_URL = 'http://localhost:5000';
 

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { TestScenario, APIRequest } from '../types/models';
+import { TestScenario, APIRequest } from 'types/models';
 import { TextField, Button, IconButton, Select, MenuItem, FormControl, InputLabel, Box, Grid, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { FieldSelector } from './FieldSelector';
-import { api } from '../api/client';
+import { api } from 'api/client';
+import { RequestEditor } from "components/RequestEditor";
 
 interface ScenarioFormProps {
   scenario?: TestScenario;
@@ -111,7 +112,11 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({ scenario, onSave, on
           request={request}
           onChange={(updated) => updateRequest(index, updated)}
           onRemove={() => removeRequest(index)}
-          availableNames={formData.requests?.filter((_, i) => i < index).map(r => r.save_as).filter(Boolean) || []}
+          // Fix the available names by filtering out undefined values
+          availableNames={formData.requests
+            ?.filter((_, i) => i < index)
+            .map(r => r.save_as)
+            .filter((name): name is string => name !== undefined) || []}
         />
       ))}
 
