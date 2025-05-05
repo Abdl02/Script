@@ -9,9 +9,9 @@ requests:
   headers:
     Content-Type: "application/json"
   body:
-    name: "nkjnkjnkj3"
+    name: "tesjdshj3"
     description: "Test API for automation"
-    contextPath: "/tesjhj3"
+    contextPath: "/tesjdshj3"
     type: "PUBLIC"
     style: "REST"
     metaData:

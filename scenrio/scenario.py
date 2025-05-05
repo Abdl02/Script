@@ -1086,10 +1086,3 @@ def create_new_scenario():
         requests=requests,
     )
     return new_scenario
-
-
-def save_scenario_to_json(scenario: TestScenario, filename: str = "scenario.json"):
-    """Saves a TestScenario object to a JSON file."""
-    with open(filename, "w") as f:
-        json.dump(scenario.to_dict(), f, indent=2)
-    print(f"Scenario '{scenario.name}' saved to '{filename}'")

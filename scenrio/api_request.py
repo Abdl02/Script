@@ -2,7 +2,7 @@ import requests
 import json
 import re
 from typing import Dict, Any, Optional
-from util.config_loader import *
+from util.token_util import *
 from config.config import Config
 
 
