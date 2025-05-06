@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { api } from 'api/client';
-import { TestScenario } from 'types/models';
 
 export const useScenarios = () => {
   const [scenarios, setScenarios] = useState<string[]>([]);
