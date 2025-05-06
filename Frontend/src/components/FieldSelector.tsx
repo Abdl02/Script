@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { api } from 'api/client';
 import { Field } from 'types/models';
-import { Box, Typography, Button, Chip, TextField, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
+import {
+  Box, Typography, Button, Chip, TextField, Dialog, DialogTitle,
+  DialogContent, DialogActions, CircularProgress, Alert, FormControl,
+  InputLabel, Select, MenuItem, Paper, Divider, Switch, FormControlLabel
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const getValueAtPath = (obj: any, path: string | undefined): any => {
   if (!path) return undefined;
+  if (!obj) return undefined;
 
   return path.split('.').reduce((acc, part) => {
     if (!acc) return undefined;
@@ -25,13 +32,20 @@ interface FieldSelectorProps {
   availableRefs: string[];
 }
 
-export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, value, onChange, availableRefs }) => {
+export const FieldSelector: React.FC<FieldSelectorProps> = ({
+  endpointType,
+  value,
+  onChange,
+  availableRefs
+}) => {
   const [fields, setFields] = useState<Field[]>([]);
   const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set());
   const [showReferenceDialog, setShowReferenceDialog] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [showAllFields, setShowAllFields] = useState(false);
+  const [customField, setCustomField] = useState('');
 
   useEffect(() => {
     if (endpointType) {
@@ -39,12 +53,10 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
     }
   }, [endpointType, retryCount]);
 
-  // Update selected fields when value changes externally
   useEffect(() => {
     if (value) {
       const fieldsToSelect = new Set<string>();
 
-      // Function to recursively find all fields in the value object
       const findFields = (obj: any, prefix = '') => {
         if (!obj || typeof obj !== 'object') return;
 
@@ -72,10 +84,9 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
       console.log(`Loading fields for endpoint type: ${endpointType}`);
       const response = await api.getEndpointFields(endpointType);
 
-      // If we received an empty array, show a message
       if (!response || response.length === 0) {
         console.warn(`No fields returned for ${endpointType}, using default fields`);
-        // For api-specs, use some default fields based on your API structure
+
         if (endpointType === 'api-specs') {
           const defaultFields: Field[] = [
             { path: 'name', type: 'string', required: true },
@@ -92,7 +103,6 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
           ];
           setFields(defaultFields);
         } else {
-          // For other endpoints, use basic fields
           setFields([
             { path: 'name', type: 'string', required: true },
             { path: 'description', type: 'string' }
@@ -140,12 +150,10 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
     }
     setSelectedFields(newSelected);
 
-    // Update body value
     const newValue = { ...value } || {};
     const parts = fieldPath.split('.');
     let current = newValue;
 
-    // Safely create nested structure
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
       if (part.includes('[') && part.includes(']')) {
@@ -171,20 +179,17 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
       if (!current[fieldName]) current[fieldName] = [];
 
       if (newSelected.has(fieldPath)) {
-        // Ensure array has enough elements
         while (current[fieldName].length <= index) {
           current[fieldName].push('');
         }
         current[fieldName][index] = '';
       } else {
-        // If array exists and has this index, remove it
         if (current[fieldName].length > index) {
           current[fieldName].splice(index, 1);
         }
       }
     } else {
       if (newSelected.has(fieldPath)) {
-        // Determine default value based on field type if available
         const field = fields.find(f => f.path === fieldPath);
         let defaultValue: any = '';  // Use 'any' type to allow different value types
 
@@ -287,6 +292,56 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
     setRetryCount(prev => prev + 1);
   };
 
+  const handleAddCustomField = () => {
+    if (!customField.trim()) return;
+
+    const newSelected = new Set(selectedFields);
+    newSelected.add(customField);
+    setSelectedFields(newSelected);
+
+    const newValue = { ...value } || {};
+    const parts = customField.split('.');
+    let current = newValue;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      if (!current[part]) {
+        current[part] = {};
+      }
+      current = current[part];
+    }
+
+    current[parts[parts.length - 1]] = '';
+
+    onChange(newValue);
+    setCustomField('');
+  };
+
+  const getCustomFields = (): string[] => {
+    const customFields: string[] = [];
+
+    const findCustomFields = (obj: any, prefix = '') => {
+      if (!obj || typeof obj !== 'object') return;
+
+      Object.keys(obj).forEach(key => {
+        const path = prefix ? `${prefix}.${key}` : key;
+
+        const isKnownField = fields.some(f => f.path === path);
+
+        if (!isKnownField) {
+          customFields.push(path);
+        }
+
+        if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+          findCustomFields(obj[key], path);
+        }
+      });
+    };
+
+    findCustomFields(value);
+    return customFields;
+  };
+
   if (!endpointType) {
     return (
       <Box>
@@ -297,82 +352,196 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
     );
   }
 
+  const customFields = getCustomFields();
+
+  const availableFields = fields.filter(field => !selectedFields.has(field.path));
+  const selectedFieldsList = fields.filter(field => selectedFields.has(field.path));
+
   return (
     <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        Available Fields for {endpointType}:
-      </Typography>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="subtitle1">
+          Body Fields for {endpointType}
+        </Typography>
+
+        <Button
+          size="small"
+          startIcon={<RefreshIcon />}
+          onClick={handleRetry}
+          disabled={loading}
+        >
+          Refresh Fields
+        </Button>
+      </Box>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
           <CircularProgress size={24} />
         </Box>
       ) : error ? (
-        <Box>
-          <Typography color="error">{error}</Typography>
-          <Button onClick={handleRetry} variant="outlined" size="small" sx={{ mt: 1 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+          <Button onClick={handleRetry} size="small" sx={{ ml: 2 }}>
             Retry
           </Button>
-        </Box>
+        </Alert>
       ) : (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-          {fields.length === 0 ? (
-            <Box>
-              <Typography>No fields available. Using default fields.</Typography>
-              <Button onClick={handleRetry} variant="outlined" size="small" sx={{ mt: 1 }}>
-                Retry
-              </Button>
-            </Box>
-          ) : (
-            fields.map((field) => (
-              <Chip
-                key={field.path}
-                label={field.path}
-                clickable
-                color={selectedFields.has(field.path) ? 'primary' : 'default'}
-                onClick={() => toggleField(field.path)}
-              />
-            ))
-          )}
-        </Box>
-      )}
+        <>
+          <Paper sx={{ p: 2, mb: 3 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showAllFields}
+                  onChange={(e) => setShowAllFields(e.target.checked)}
+                />
+              }
+              label="Show all available fields"
+            />
 
-      {selectedFields.size > 0 && (
-        <Box>
-          <Typography variant="subtitle2" gutterBottom>
-            Selected Fields:
-          </Typography>
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                {showAllFields ? 'All Available Fields:' : 'Add Fields:'}
+              </Typography>
 
-          {Array.from(selectedFields).filter(Boolean).map(fieldPath => {
-            const fieldValue = getValueAtPath(value, fieldPath) || '';
-            const field = fields.find(f => f.path === fieldPath);
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                {showAllFields ? (
+                  fields.length === 0 ? (
+                    <Typography>No fields available</Typography>
+                  ) : (
+                    fields.map((field) => (
+                      <Chip
+                        key={field.path}
+                        label={field.path + (field.required ? ' *' : '')}
+                        clickable
+                        color={selectedFields.has(field.path) ? 'primary' : 'default'}
+                        onClick={() => toggleField(field.path)}
+                      />
+                    ))
+                  )
+                ) : (
+                  availableFields.length === 0 ? (
+                    <Typography>No additional fields available</Typography>
+                  ) : (
+                    availableFields.map((field) => (
+                      <Chip
+                        key={field.path}
+                        label={field.path + (field.required ? ' *' : '')}
+                        clickable
+                        onClick={() => toggleField(field.path)}
+                      />
+                    ))
+                  )
+                )}
+              </Box>
 
-            return (
-              <Box key={fieldPath} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
-                <Typography sx={{ minWidth: 200 }}>
-                  {fieldPath}
-                  {field?.required && <span style={{ color: 'red' }}> *</span>}
-                </Typography>
+              {/* Add custom field */}
+              <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                 <TextField
                   size="small"
-                  value={fieldValue}
-                  onChange={(e) => updateFieldValue(fieldPath, e.target.value)}
-                  placeholder={`Enter ${fieldPath}`}
+                  label="Add Custom Field"
+                  value={customField}
+                  onChange={(e) => setCustomField(e.target.value)}
+                  placeholder="e.g., customProperty or nested.property"
                   sx={{ flexGrow: 1 }}
-                  required={field?.required}
-                  type={field?.type === 'number' || field?.type === 'integer' ? 'number' : 'text'}
                 />
                 <Button
+                  variant="outlined"
                   size="small"
-                  onClick={() => setShowReferenceDialog(fieldPath)}
-                  disabled={availableRefs.length === 0}
+                  startIcon={<AddIcon />}
+                  onClick={handleAddCustomField}
+                  disabled={!customField.trim()}
                 >
-                  Reference
+                  Add
                 </Button>
               </Box>
-            );
-          })}
-        </Box>
+            </Box>
+          </Paper>
+
+          {/* Show selected fields */}
+          {selectedFields.size > 0 && (
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Selected Fields:
+              </Typography>
+
+              <Paper sx={{ p: 2 }}>
+                {Array.from(selectedFields).filter(Boolean).map(fieldPath => {
+                  const fieldValue = getValueAtPath(value, fieldPath) || '';
+                  const field = fields.find(f => f.path === fieldPath);
+                  const isCustomField = !field && customFields.includes(fieldPath);
+
+                  return (
+                    <Box key={fieldPath} sx={{
+                      display: 'flex',
+                      gap: 2,
+                      mb: 2,
+                      alignItems: 'center',
+                      backgroundColor: isCustomField ? '#f5f8ff' : 'inherit',
+                      p: isCustomField ? 1 : 0,
+                      borderRadius: 1
+                    }}>
+                      <Typography sx={{ minWidth: 200 }}>
+                        {fieldPath}
+                        {field?.required && <span style={{ color: 'red' }}> *</span>}
+                        {isCustomField && <span style={{ color: 'blue' }}> (custom)</span>}
+                      </Typography>
+
+                      {field?.type === 'boolean' ? (
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={!!fieldValue}
+                              onChange={(e) => updateFieldValue(fieldPath, e.target.checked)}
+                            />
+                          }
+                          label={fieldValue ? "True" : "False"}
+                        />
+                      ) : field?.type === 'enum' ? (
+                        <Select
+                          size="small"
+                          value={fieldValue || ''}
+                          onChange={(e) => updateFieldValue(fieldPath, e.target.value)}
+                          sx={{ minWidth: 200 }}
+                        >
+                          <MenuItem value="DRAFT">DRAFT</MenuItem>
+                          <MenuItem value="PUBLISHED">PUBLISHED</MenuItem>
+                          <MenuItem value="DEPRECATED">DEPRECATED</MenuItem>
+                        </Select>
+                      ) : (
+                        <TextField
+                          size="small"
+                          value={fieldValue}
+                          onChange={(e) => updateFieldValue(fieldPath, e.target.value)}
+                          placeholder={`Enter ${fieldPath}`}
+                          sx={{ flexGrow: 1 }}
+                          required={field?.required}
+                          type={field?.type === 'number' || field?.type === 'integer' ? 'number' : 'text'}
+                        />
+                      )}
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => setShowReferenceDialog(fieldPath)}
+                        disabled={availableRefs.length === 0}
+                      >
+                        Reference
+                      </Button>
+
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => toggleField(fieldPath)}
+                      >
+                        Remove
+                      </Button>
+                    </Box>
+                  );
+                })}
+              </Paper>
+            </Box>
+          )}
+        </>
       )}
 
       {showReferenceDialog && (

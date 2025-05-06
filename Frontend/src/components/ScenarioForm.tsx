@@ -1,26 +1,27 @@
-// src/components/ScenarioForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TestScenario, APIRequest } from 'types/models';
-import { TextField, Button, Box, Grid, Typography, Paper, Alert, Snackbar } from '@mui/material';
+import {
+  TextField, Button, Box, Grid, Typography, Paper, Alert, Snackbar,
+  Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { RequestEditor } from './RequestEditor';
-import { validateScenario } from 'utils/validation';
+import { EnhancedRequestEditor } from './EnhancedRequestEditor';
 
 interface ScenarioFormProps {
   scenario?: TestScenario;
   onSave: (scenario: Partial<TestScenario>) => void;
   onCancel: () => void;
   onRun?: () => void;
-  environment?: string; // Added environment prop with optional flag
+  environment?: string;
 }
 
 export const ScenarioForm: React.FC<ScenarioFormProps> = ({
-  scenario, onSave, onCancel, onRun, environment = 'localDev' // Default value provided
+  scenario, onSave, onCancel, onRun, environment = 'localDev'
 }) => {
   const [formData, setFormData] = useState<Partial<TestScenario>>(
     scenario || {
       name: '',
-      id: '',
+      id: `id_${Date.now()}`,
       description: '',
       version: '1.0.0',
       requests: []
@@ -29,6 +30,19 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('info');
+  const [loading, setLoading] = useState(false);
+  const [debug, setDebug] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
+
+  useEffect(() => {
+    if (scenario) {
+      setFormData({
+        ...scenario,
+        requests: scenario.requests ? [...scenario.requests] : []
+      });
+    }
+  }, [scenario]);
 
   const handleChange = (field: keyof TestScenario, value: any) => {
     setFormData(prev => ({
@@ -67,37 +81,92 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
     setFormData(prev => ({ ...prev, requests }));
   };
 
-  const handleSubmit = () => {
-    // Validate scenario before submitting
-    const errors = validateScenario(formData);
+  const duplicateRequest = (index: number) => {
+    const requests = [...(formData.requests || [])];
+    const originalRequest = requests[index];
+    const duplicatedRequest = {
+      ...JSON.parse(JSON.stringify(originalRequest)),
+      name: `${originalRequest.name} (Copy)`
+    };
+    requests.splice(index + 1, 0, duplicatedRequest);
+    setFormData(prev => ({ ...prev, requests }));
+  };
+
+  const validateForm = (): string[] => {
+    const errors: string[] = [];
+
+    if (!formData.name) errors.push('Scenario name is required');
+
+    if (formData.requests && formData.requests.length > 0) {
+      formData.requests.forEach((request, index) => {
+        if (!request.name) errors.push(`Request ${index + 1}: Name is required`);
+        if (!request.method) errors.push(`Request ${index + 1}: Method is required`);
+        if (!request.url) errors.push(`Request ${index + 1}: URL is required`);
+      });
+    }
+
+    return errors;
+  };
+
+  const handleSubmit = async () => {
+    const errors = validateForm();
     if (errors.length > 0) {
       setValidationErrors(errors);
+      setSnackbarMessage('Please fix validation errors');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
 
-    const finalData = {
-      ...formData,
-      created_at: formData.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    setValidationErrors([]);
+    setLoading(true);
 
     try {
-      onSave(finalData);
+      const preparedRequests = formData.requests?.map(request => {
+        // Make sure body is properly initialized for POST/PUT requests
+        if ((['POST', 'PUT', 'PATCH'].includes(request.method || '')) && !request.body) {
+          return { ...request, body: {} };
+        }
+        return request;
+      }) || [];
+
+      const finalData = {
+        ...formData,
+        id: formData.id || `id_${formData.name}_${Date.now()}`,
+        description: formData.description || `Scenario for ${formData.name}`,
+        version: formData.version || '1.0.0',
+        created_at: formData.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        requests: preparedRequests
+      };
+
+      console.log('Submitting scenario data:', finalData);
+
+      await onSave(finalData);
+
       setSnackbarMessage('Scenario saved successfully');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Error saving scenario:', error);
-      setSnackbarMessage('Failed to save scenario');
+      setDebug(error);
+      setSnackbarMessage('Failed to save scenario. Please check the console for details.');
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Get available references for each request
   const getAvailableRefsForIndex = (index: number): string[] => {
     return formData.requests
       ?.slice(0, index)
       .map(r => r.save_as)
       .filter((name): name is string => name !== undefined) || [];
+  };
+
+  const closeDebug = () => {
+    setShowDebug(false);
   };
 
   return (
@@ -123,18 +192,21 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
             <TextField
               fullWidth
               label="Scenario Name"
-              value={formData.name}
+              value={formData.name || ''}
               onChange={(e) => handleChange('name', e.target.value)}
               required
+              error={!formData.name}
+              helperText={!formData.name ? "Name is required" : ""}
             />
           </Grid>
           <Grid item xs={6}>
             <TextField
               fullWidth
               label="ID"
-              value={formData.id}
+              value={formData.id || ''}
               onChange={(e) => handleChange('id', e.target.value)}
               placeholder="Generated automatically if empty"
+              disabled={!!scenario} // Disable editing ID for existing scenarios
             />
           </Grid>
           <Grid item xs={12}>
@@ -143,7 +215,7 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
               label="Description"
               multiline
               rows={2}
-              value={formData.description}
+              value={formData.description || ''}
               onChange={(e) => handleChange('description', e.target.value)}
             />
           </Grid>
@@ -151,7 +223,7 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
             <TextField
               fullWidth
               label="Version"
-              value={formData.version}
+              value={formData.version || ''}
               onChange={(e) => handleChange('version', e.target.value)}
             />
           </Grid>
@@ -175,7 +247,7 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
         </Typography>
       </Typography>
 
-      {formData.requests?.length === 0 ? (
+      {!formData.requests?.length ? (
         <Paper sx={{ p: 3, textAlign: 'center', backgroundColor: '#f5f5f5' }}>
           <Typography color="textSecondary" sx={{ mb: 2 }}>
             No requests added yet. Add your first request to build your scenario.
@@ -190,13 +262,14 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
         </Paper>
       ) : (
         <>
-          {formData.requests?.map((request, index) => (
-            <RequestEditor
+          {formData.requests.map((request, index) => (
+            <EnhancedRequestEditor
               key={index}
               index={index}
               request={request}
               onChange={(updated) => updateRequest(index, updated)}
               onRemove={() => removeRequest(index)}
+              onDuplicate={() => duplicateRequest(index)}
               availableRefs={getAvailableRefsForIndex(index)}
             />
           ))}
@@ -213,8 +286,13 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
       )}
 
       <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Save Scenario
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? <CircularProgress size={24} /> : 'Save Scenario'}
         </Button>
         <Button variant="outlined" onClick={onCancel}>
           Cancel
@@ -224,9 +302,18 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
             variant="contained"
             color="secondary"
             onClick={onRun}
-            disabled={!scenario.name}
+            disabled={!scenario.name || loading}
           >
             Run Scenario
+          </Button>
+        )}
+        {debug && (
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => setShowDebug(true)}
+          >
+            Show Error Details
           </Button>
         )}
       </Box>
@@ -235,8 +322,27 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      <Dialog open={showDebug} onClose={closeDebug} maxWidth="md" fullWidth>
+        <DialogTitle>Error Details</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1">Error Object:</Typography>
+            <pre style={{ overflow: 'auto', maxHeight: '400px' }}>
+              {JSON.stringify(debug, null, 2)}
+            </pre>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDebug}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

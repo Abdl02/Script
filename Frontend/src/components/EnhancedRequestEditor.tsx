@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { APIRequest, Assertion } from 'types/models';
 import { Card, Typography, TextField, Select, MenuItem, IconButton, FormControl,
          InputLabel, Box, Button, Grid, Accordion, AccordionSummary,
-         AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip } from '@mui/material';
+         AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -29,23 +29,37 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showBodyEditor, setShowBodyEditor] = useState(!!request.body);
   const [templateName, setTemplateName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
 
   useEffect(() => {
-    // Get body templates for this endpoint type
     const loadTemplates = async () => {
       try {
+        setLoading(true);
         const endpointType = getEndpointType(request.url);
         const templates = await api.getBodyTemplates(endpointType);
         setBodyTemplates(templates);
+        setError(null);
       } catch (error) {
         console.error('Failed to load body templates:', error);
+        setError('Failed to load templates. Please try again.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadTemplates();
+    if (request.url) {
+      loadTemplates();
+    }
   }, [request.url]);
+
+  useEffect(() => {
+    if (['POST', 'PUT', 'PATCH'].includes(request.method) && !request.body) {
+      onChange({ body: {} });
+    }
+  }, [request.method]);
 
   const handleBodyUpdate = (body: any) => {
     onChange({ body });
@@ -75,28 +89,31 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
     if (!templateName || !request.body) return;
 
     try {
+      setLoading(true);
       const endpointType = getEndpointType(request.url);
       await api.saveBodyTemplate(endpointType, templateName, request.body);
-      // Refresh templates
       const templates = await api.getBodyTemplates(endpointType);
       setBodyTemplates(templates);
       setTemplateName('');
+      setError(null);
     } catch (error) {
       console.error('Failed to save template:', error);
+      setError('Failed to save template. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadTemplate = (templateBody: any) => {
     onChange({ body: templateBody });
+    setShowBodyEditor(true);
   };
 
-  // Extract endpoint type from URL for field selection
   const getEndpointType = (url: string): string => {
     if (!url) return 'api-specs'; // Default
 
     try {
       const urlParts = url.split('/');
-      // Try to find parts after the base URL
       const apiPathIndex = urlParts.findIndex(part => part === 'api');
 
       if (apiPathIndex >= 0 && apiPathIndex + 1 < urlParts.length) {
@@ -110,6 +127,24 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
     }
   };
 
+  const handleMethodChange = (method: string) => {
+    const newData: Partial<APIRequest> = { method };
+    if (['POST', 'PUT', 'PATCH'].includes(method) && !request.body) {
+      newData.body = {};
+      setShowBodyEditor(true);
+    }
+    onChange(newData);
+  };
+
+  const handleHeadersChange = (headerJson: string) => {
+    try {
+      const headers = JSON.parse(headerJson);
+      onChange({ headers });
+    } catch (err) {
+      console.error('Invalid header JSON:', err);
+    }
+  };
+
   return (
     <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)} sx={{ mb: 2 }}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -120,13 +155,10 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
               {request.method} {request.url && `- ${request.url.split('/').pop()}`}
             </Typography>
           </Typography>
-          <Box>
+          <Box onClick={(e) => e.stopPropagation()}>
             <Tooltip title="Duplicate Request">
               <IconButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDuplicate();
-                }}
+                onClick={onDuplicate}
                 size="small"
               >
                 <ContentCopyIcon />
@@ -135,10 +167,7 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
             <Tooltip title="Remove Request">
               <IconButton
                 color="error"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove();
-                }}
+                onClick={onRemove}
                 size="small"
               >
                 <DeleteIcon />
@@ -169,6 +198,7 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
                 value={request.name || ''}
                 onChange={(e) => onChange({ name: e.target.value })}
                 placeholder="E.g., Create API"
+                required
               />
             </Grid>
             <Grid item xs={4}>
@@ -177,7 +207,7 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
                 <Select
                   value={request.method || 'GET'}
                   label="Method"
-                  onChange={(e) => onChange({ method: e.target.value })}
+                  onChange={(e) => handleMethodChange(e.target.value)}
                 >
                   {httpMethods.map(method => (
                     <MenuItem key={method} value={method}>{method}</MenuItem>
@@ -207,6 +237,7 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
                     Use <code>{'{variable}'}</code> or <code>${'{variable.property}'}</code> for parameters
                   </>
                 }
+                required
               />
             </Grid>
             <Grid item xs={12}>
@@ -266,13 +297,19 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
                     variant="outlined"
                     startIcon={<SaveIcon />}
                     onClick={handleSaveTemplate}
-                    disabled={!templateName}
+                    disabled={!templateName || loading}
                   >
                     Save
                   </Button>
                 </Box>
               )}
             </Box>
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
 
             {showBodyEditor && (
               <FieldSelector
@@ -283,7 +320,7 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
               />
             )}
 
-            {request.body && (
+            {request.body && Object.keys(request.body).length > 0 && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle2" gutterBottom>
                   Request Body Preview:
@@ -365,14 +402,7 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
                   multiline
                   rows={4}
                   value={request.headers ? JSON.stringify(request.headers, null, 2) : '{}'}
-                  onChange={(e) => {
-                    try {
-                      const headers = JSON.parse(e.target.value);
-                      onChange({ headers });
-                    } catch (err) {
-                      // Invalid JSON - don't update
-                    }
-                  }}
+                  onChange={(e) => handleHeadersChange(e.target.value)}
                   placeholder='{"Content-Type": "application/json"}'
                 />
               </Grid>

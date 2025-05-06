@@ -7,13 +7,13 @@ from runtime.flow_runner import run, save_scenario, list_scenarios
 from scenrio.scenario import create_new_scenario, TestScenario
 import json
 import os
+import traceback
 
 app = FastAPI()
 
-# Enhanced CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,7 +57,7 @@ def get_scenarios():
         return scenarios
     except Exception as e:
         print(f"Error retrieving scenarios: {str(e)}")
-        # Return empty list instead of raising error
+        print(traceback.format_exc())
         return []
 
 
@@ -75,6 +75,8 @@ def get_scenario(name: str):
             "requests": []
         }
     except Exception as e:
+        print(f"Error getting scenario {name}: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(status_code=404, detail=f"Scenario '{name}' not found: {str(e)}")
 
 
@@ -84,18 +86,33 @@ def create_scenario(scenario: ScenarioRequest):
     try:
         print(f"Received scenario data: {scenario.dict()}")
 
+        if not scenario.id:
+            scenario.id = f"id_{scenario.name}_{datetime.now().timestamp()}"
+
+        requests_data = []
+        for req in (scenario.requests or []):
+            req_dict = req.dict()
+            assertions = []
+            for assertion in req_dict.get("assertions", []):
+                assertions.append(assertion)
+            req_dict["assertions"] = assertions
+            requests_data.append(req_dict)
+
         new_scenario = TestScenario(
             name=scenario.name,
-            id=scenario.id or str(datetime.now().timestamp()),
+            id=scenario.id,
             description=scenario.description or f"Description for {scenario.name}",
             version=scenario.version or "1.0.0",
-            created_at=datetime.now().isoformat() + "Z",
-            updated_at=datetime.now().isoformat() + "Z",
-            requests=[req.dict() for req in (scenario.requests or [])]
+            created_at=scenario.created_at or datetime.now().isoformat() + "Z",
+            updated_at=scenario.updated_at or datetime.now().isoformat() + "Z",
+            requests=requests_data
         )
+
+        print(f"Created scenario object: {new_scenario.to_dict()}")
 
         # Save the scenario
         save_result = save_scenario(new_scenario)
+        print(f"Save result: {save_result}")
 
         return {
             "message": f"Scenario '{scenario.name}' created",
@@ -106,7 +123,9 @@ def create_scenario(scenario: ScenarioRequest):
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        error_details = f"Error creating scenario: {str(e)}\n{traceback.format_exc()}"
+        print(error_details)
+        raise HTTPException(status_code=400, detail=error_details)
 
 
 @app.post("/api/scenarios/{name}/run")
@@ -119,6 +138,8 @@ def run_scenario(name: str):
             "success": result
         }
     except Exception as e:
+        print(f"Error running scenario {name}: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -129,7 +150,13 @@ def get_environments():
         from config.envModel import envs
         return {name: {"url": env.envUrl, "type": name} for name, env in envs.items()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error getting environments: {str(e)}")
+        print(traceback.format_exc())
+        # Return default environments instead of failing
+        return {
+            "localDev": {"url": "http://localhost:8099", "type": "localDev"},
+            "dev": {"url": "https://dev.example.com", "type": "dev"}
+        }
 
 
 @app.post("/api/scenarios/{name}/validate")
@@ -138,18 +165,23 @@ def validate_scenario(name: str):
     try:
         return {"valid": True, "message": "Scenario structure is valid"}
     except Exception as e:
+        print(f"Error validating scenario {name}: {str(e)}")
         return {"valid": False, "message": str(e)}
 
 
 @app.get("/api/templates/body/{endpoint_type}")
 def get_body_templates(endpoint_type: str):
     """Return saved body templates for specific endpoint types"""
-    templates_file = "body_templates.json"
-    if os.path.exists(templates_file):
-        with open(templates_file, "r") as f:
-            templates = json.load(f)
-            return templates.get(endpoint_type, {})
-    return {}
+    try:
+        templates_file = "body_templates.json"
+        if os.path.exists(templates_file):
+            with open(templates_file, "r") as f:
+                templates = json.load(f)
+                return templates.get(endpoint_type, {})
+        return {}
+    except Exception as e:
+        print(f"Error getting body templates for {endpoint_type}: {str(e)}")
+        return {}
 
 
 @app.get("/api/execute_status/{execution_id}")
@@ -182,10 +214,9 @@ def get_fields(endpoint_type: str):
             {"path": "addVersionToContextPath", "type": "boolean"}
         ]
 
-    # For any other endpoint type, return some basic fields
     return [
         {"path": "field1", "type": "string"},
-        {"path": "field2", "type": "string"}  # Changed from 'int' to 'string' to match expected format
+        {"path": "field2", "type": "string"}
     ]
 
 
@@ -219,7 +250,7 @@ def get_templates(endpoint_type: str):
         {"template": f"Template for {endpoint_type}", "example": {"key": "value"}}
     ]
 
-
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
