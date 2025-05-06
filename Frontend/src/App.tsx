@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Container, AppBar, Toolbar, Typography, Box } from '@mui/material';
-import { ScenarioList } from '@components/ScenarioList';
-import { ScenarioForm } from '@components/ScenarioForm';
-import { api } from '@api/client';
+import { ScenarioList } from 'components/ScenarioList';
+import { ScenarioForm } from 'components/ScenarioForm';
+import { api } from 'api/client';
 import type { TestScenario } from 'types/models';
 
 const theme = createTheme({
@@ -19,8 +19,7 @@ const theme = createTheme({
 
 function App() {
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
-  const [selectedScenario, setSelectedScenario] = useState<TestScenario | null>(null);
-
+  const [selectedScenario, setSelectedScenario] = useState<TestScenario | undefined>(undefined);
   const handleSelectScenario = async (name: string) => {
     try {
       const scenario = await api.getScenario(name);
@@ -35,7 +34,7 @@ function App() {
     try {
       await api.createScenario(scenario);
       setView('list');
-      setSelectedScenario(null);
+      setSelectedScenario(undefined);
     } catch (error) {
       console.error('Failed to save scenario:', error);
     }
@@ -78,7 +77,7 @@ function App() {
             onSave={handleSaveScenario}
             onCancel={() => {
               setView('list');
-              setSelectedScenario(null);
+              setSelectedScenario(undefined);
             }}
             onRun={handleRunScenario}
           />
