@@ -7,12 +7,13 @@ from runtime.flow_runner import run, save_scenario, list_scenarios
 from scenrio.scenario import create_new_scenario, TestScenario
 import json
 import os
+
 app = FastAPI()
 
-# Enable CORS
+# Enhanced CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,7 +51,14 @@ class ScenarioRequest(BaseModel):
 @app.get("/api/scenarios")
 def get_scenarios():
     """Return list of scenario names as strings to match frontend expectations"""
-    return list_scenarios()
+    try:
+        scenarios = list_scenarios()
+        print(f"Retrieved scenarios: {scenarios}")
+        return scenarios
+    except Exception as e:
+        print(f"Error retrieving scenarios: {str(e)}")
+        # Return empty list instead of raising error
+        return []
 
 
 @app.get("/api/scenarios/{name}")
@@ -123,6 +131,7 @@ def get_environments():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/api/scenarios/{name}/validate")
 def validate_scenario(name: str):
     """Validate a scenario without running it"""
@@ -130,6 +139,7 @@ def validate_scenario(name: str):
         return {"valid": True, "message": "Scenario structure is valid"}
     except Exception as e:
         return {"valid": False, "message": str(e)}
+
 
 @app.get("/api/templates/body/{endpoint_type}")
 def get_body_templates(endpoint_type: str):
@@ -140,6 +150,7 @@ def get_body_templates(endpoint_type: str):
             templates = json.load(f)
             return templates.get(endpoint_type, {})
     return {}
+
 
 @app.get("/api/execute_status/{execution_id}")
 def get_execution_status(execution_id: str):
@@ -152,6 +163,8 @@ def get_execution_status(execution_id: str):
 @app.get("/api/fields/{endpoint_type}")
 def get_fields(endpoint_type: str):
     """Return available fields for an endpoint type with path property"""
+    print(f"Retrieving fields for endpoint type: {endpoint_type}")
+
     if endpoint_type == "api-specs":
         return [
             {"path": "name", "type": "string", "required": True},
@@ -168,9 +181,11 @@ def get_fields(endpoint_type: str):
             {"path": "metaData.tags", "type": "array"},
             {"path": "addVersionToContextPath", "type": "boolean"}
         ]
+
+    # For any other endpoint type, return some basic fields
     return [
         {"path": "field1", "type": "string"},
-        {"path": "field2", "type": "int"}
+        {"path": "field2", "type": "string"}  # Changed from 'int' to 'string' to match expected format
     ]
 
 
@@ -203,3 +218,8 @@ def get_templates(endpoint_type: str):
     return [
         {"template": f"Template for {endpoint_type}", "example": {"key": "value"}}
     ]
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

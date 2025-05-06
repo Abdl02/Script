@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from 'api/client';
-import { Card, TextField, Button, Box, Typography, CircularProgress } from '@mui/material';
+import { Card, TextField, Button, Box, Typography, CircularProgress, Paper } from '@mui/material';
 
 interface ScenarioListProps {
   onSelect: (name: string) => void;
@@ -25,14 +25,24 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({ onSelect, onNew }) =
       const data = await api.getScenarios();
       console.log('API response:', data);
 
-      // The API returns an array of strings now
-      setScenarios(data || []);
+      if (Array.isArray(data)) {
+        // Filter out any non-string values
+        const validScenarios = data.filter(name => name && typeof name === 'string');
+        setScenarios(validScenarios);
+      } else {
+        console.warn('Unexpected data format from API:', data);
+        setScenarios([]);
+      }
     } catch (error) {
       console.error('Failed to load scenarios:', error);
       setError('Failed to load scenarios. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    loadScenarios();
   };
 
   const filteredScenarios = scenarios
@@ -55,14 +65,39 @@ export const ScenarioList: React.FC<ScenarioListProps> = ({ onSelect, onNew }) =
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Typography color="error" sx={{ my: 2 }}>{error}</Typography>
+        <Box sx={{ my: 2 }}>
+          <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
+          <Button variant="outlined" color="primary" onClick={handleRetry}>
+            Retry
+          </Button>
+        </Box>
       ) : filteredScenarios.length === 0 ? (
-        <Typography sx={{ my: 2 }}>No scenarios found. Create a new one!</Typography>
+        <Paper sx={{ p: 3, my: 2, backgroundColor: '#f5f5f5', textAlign: 'center' }}>
+          <Typography sx={{ mb: 2 }}>
+            {scenarios.length === 0
+              ? "No scenarios found. Create a new one to get started!"
+              : "No scenarios match your search. Try a different term."}
+          </Typography>
+          {scenarios.length === 0 && (
+            <Button variant="contained" color="primary" onClick={handleRetry} sx={{ mr: 2 }}>
+              Refresh
+            </Button>
+          )}
+        </Paper>
       ) : (
         filteredScenarios.map((name, index) => (
           <Card
             key={index}
-            sx={{ mb: 2, p: 2, cursor: 'pointer' }}
+            sx={{
+              mb: 2,
+              p: 2,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                transform: 'translateY(-2px)'
+              }
+            }}
             onClick={() => onSelect(name)}
           >
             <Typography variant="h6">{name}</Typography>

@@ -3,12 +3,11 @@ import { api } from 'api/client';
 import { Field } from 'types/models';
 import { Box, Typography, Button, Chip, TextField, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
 
-// Safe version of getValueAtPath that handles undefined inputs
 const getValueAtPath = (obj: any, path: string | undefined): any => {
   if (!path) return undefined;
 
   return path.split('.').reduce((acc, part) => {
-    if (!acc) return undefined; // Handle null/undefined parent object
+    if (!acc) return undefined;
 
     if (part.includes('[') && part.includes(']')) {
       const fieldName = part.split('[')[0];
@@ -18,13 +17,6 @@ const getValueAtPath = (obj: any, path: string | undefined): any => {
     return acc?.[part];
   }, obj);
 };
-
-// Adapt the server response to match our Field interface
-interface ApiFieldResponse {
-  name?: string;
-  path?: string;
-  type?: string;
-}
 
 interface FieldSelectorProps {
   endpointType: string;
@@ -39,12 +31,37 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
   const [showReferenceDialog, setShowReferenceDialog] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (endpointType) {
       loadFields();
     }
-  }, [endpointType]);
+  }, [endpointType, retryCount]);
+
+  // Update selected fields when value changes externally
+  useEffect(() => {
+    if (value) {
+      const fieldsToSelect = new Set<string>();
+
+      // Function to recursively find all fields in the value object
+      const findFields = (obj: any, prefix = '') => {
+        if (!obj || typeof obj !== 'object') return;
+
+        Object.keys(obj).forEach(key => {
+          const path = prefix ? `${prefix}.${key}` : key;
+          fieldsToSelect.add(path);
+
+          if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+            findFields(obj[key], path);
+          }
+        });
+      };
+
+      findFields(value);
+      setSelectedFields(fieldsToSelect);
+    }
+  }, [value]);
 
   const loadFields = async () => {
     if (!endpointType) return;
@@ -55,19 +72,53 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
       console.log(`Loading fields for endpoint type: ${endpointType}`);
       const response = await api.getEndpointFields(endpointType);
 
-      // Convert the API response to our Field interface
-      const fieldList: Field[] = (response as ApiFieldResponse[]).map(item => ({
-        // Use path if available, otherwise use name, ensure we always have a string
-        path: item.path || item.name || '',
-        type: item.type || 'string',
-      }));
+      // If we received an empty array, show a message
+      if (!response || response.length === 0) {
+        console.warn(`No fields returned for ${endpointType}, using default fields`);
+        // For api-specs, use some default fields based on your API structure
+        if (endpointType === 'api-specs') {
+          const defaultFields: Field[] = [
+            { path: 'name', type: 'string', required: true },
+            { path: 'description', type: 'string' },
+            { path: 'contextPath', type: 'string' },
+            { path: 'backendServiceUrl', type: 'string' },
+            { path: 'status', type: 'string' },
+            { path: 'type', type: 'string' },
+            { path: 'style', type: 'string' },
+            { path: 'authType', type: 'string' },
+            { path: 'metaData.version', type: 'string' },
+            { path: 'metaData.owner', type: 'string' },
+            { path: 'addVersionToContextPath', type: 'boolean' }
+          ];
+          setFields(defaultFields);
+        } else {
+          // For other endpoints, use basic fields
+          setFields([
+            { path: 'name', type: 'string', required: true },
+            { path: 'description', type: 'string' }
+          ]);
+        }
+      } else {
+        setFields(response);
+      }
 
-      console.log('Fields loaded:', fieldList);
-      setFields(fieldList);
-
-      // Update selected fields from existing value
       if (value) {
-        const existingFields = new Set(Object.keys(value).filter(Boolean));
+        const existingFields = new Set<string>();
+
+        const findFields = (obj: any, prefix = '') => {
+          if (!obj || typeof obj !== 'object') return;
+
+          Object.keys(obj).forEach(key => {
+            const path = prefix ? `${prefix}.${key}` : key;
+            existingFields.add(path);
+
+            if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+              findFields(obj[key], path);
+            }
+          });
+        };
+
+        findFields(value);
         setSelectedFields(existingFields);
       }
     } catch (error) {
@@ -79,7 +130,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
   };
 
   const toggleField = (fieldPath: string) => {
-    if (!fieldPath) return; // Skip empty paths
+    if (!fieldPath) return;
 
     const newSelected = new Set(selectedFields);
     if (newSelected.has(fieldPath)) {
@@ -96,17 +147,71 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
 
     // Safely create nested structure
     for (let i = 0; i < parts.length - 1; i++) {
-      if (!current[parts[i]]) {
-        current[parts[i]] = {};
+      const part = parts[i];
+      if (part.includes('[') && part.includes(']')) {
+        const fieldName = part.split('[')[0];
+        const index = parseInt(part.split('[')[1].replace(']', ''));
+        if (!current[fieldName]) current[fieldName] = [];
+        while (current[fieldName].length <= index) {
+          current[fieldName].push({});
+        }
+        current = current[fieldName][index];
+      } else {
+        if (!current[part]) {
+          current[part] = {};
+        }
+        current = current[part];
       }
-      current = current[parts[i]];
     }
 
     const lastPart = parts[parts.length - 1];
-    if (newSelected.has(fieldPath)) {
-      current[lastPart] = '';
+    if (lastPart.includes('[') && lastPart.includes(']')) {
+      const fieldName = lastPart.split('[')[0];
+      const index = parseInt(lastPart.split('[')[1].replace(']', ''));
+      if (!current[fieldName]) current[fieldName] = [];
+
+      if (newSelected.has(fieldPath)) {
+        // Ensure array has enough elements
+        while (current[fieldName].length <= index) {
+          current[fieldName].push('');
+        }
+        current[fieldName][index] = '';
+      } else {
+        // If array exists and has this index, remove it
+        if (current[fieldName].length > index) {
+          current[fieldName].splice(index, 1);
+        }
+      }
     } else {
-      delete current[lastPart];
+      if (newSelected.has(fieldPath)) {
+        // Determine default value based on field type if available
+        const field = fields.find(f => f.path === fieldPath);
+        let defaultValue: any = '';  // Use 'any' type to allow different value types
+
+        if (field) {
+          switch(field.type.toLowerCase()) {
+            case 'boolean':
+              defaultValue = false;
+              break;
+            case 'number':
+            case 'integer':
+              defaultValue = 0;
+              break;
+            case 'array':
+              defaultValue = [];
+              break;
+            case 'object':
+              defaultValue = {};
+              break;
+            default:
+              defaultValue = '';
+          }
+        }
+
+        current[lastPart] = defaultValue;
+      } else {
+        delete current[lastPart];
+      }
     }
 
     onChange(newValue);
@@ -120,19 +225,66 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
     let current = newValue;
 
     for (let i = 0; i < parts.length - 1; i++) {
-      if (!current[parts[i]]) {
-        current[parts[i]] = {};
+      const part = parts[i];
+      if (part.includes('[') && part.includes(']')) {
+        const fieldName = part.split('[')[0];
+        const index = parseInt(part.split('[')[1].replace(']', ''));
+        if (!current[fieldName]) current[fieldName] = [];
+        while (current[fieldName].length <= index) {
+          current[fieldName].push({});
+        }
+        current = current[fieldName][index];
+      } else {
+        if (!current[part]) {
+          current[part] = {};
+        }
+        current = current[part];
       }
-      current = current[parts[i]];
     }
 
-    current[parts[parts.length - 1]] = fieldValue;
+    const field = fields.find(f => f.path === fieldPath);
+
+    const lastPart = parts[parts.length - 1];
+    if (lastPart.includes('[') && lastPart.includes(']')) {
+      const fieldName = lastPart.split('[')[0];
+      const index = parseInt(lastPart.split('[')[1].replace(']', ''));
+      if (!current[fieldName]) current[fieldName] = [];
+      while (current[fieldName].length <= index) {
+        current[fieldName].push('');
+      }
+      current[fieldName][index] = fieldValue;
+    } else {
+      let convertedValue: any = fieldValue;
+
+      if (field) {
+        switch(field.type.toLowerCase()) {
+          case 'boolean':
+            if (typeof fieldValue === 'string') {
+              convertedValue = fieldValue.toLowerCase() === 'true';
+            }
+            break;
+          case 'number':
+          case 'integer':
+            if (typeof fieldValue === 'string' && fieldValue.trim() !== '') {
+              convertedValue = Number(fieldValue);
+            }
+            break;
+        }
+      }
+
+      current[lastPart] = convertedValue;
+    }
+
     onChange(newValue);
   };
 
   const setReference = (fieldPath: string, reference: string) => {
     updateFieldValue(fieldPath, `\${${reference}}`);
     setShowReferenceDialog(null);
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
   };
 
   if (!endpointType) {
@@ -156,11 +308,21 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
           <CircularProgress size={24} />
         </Box>
       ) : error ? (
-        <Typography color="error">{error}</Typography>
+        <Box>
+          <Typography color="error">{error}</Typography>
+          <Button onClick={handleRetry} variant="outlined" size="small" sx={{ mt: 1 }}>
+            Retry
+          </Button>
+        </Box>
       ) : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
           {fields.length === 0 ? (
-            <Typography>No fields available.</Typography>
+            <Box>
+              <Typography>No fields available. Using default fields.</Typography>
+              <Button onClick={handleRetry} variant="outlined" size="small" sx={{ mt: 1 }}>
+                Retry
+              </Button>
+            </Box>
           ) : (
             fields.map((field) => (
               <Chip
@@ -183,15 +345,22 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({ endpointType, valu
 
           {Array.from(selectedFields).filter(Boolean).map(fieldPath => {
             const fieldValue = getValueAtPath(value, fieldPath) || '';
+            const field = fields.find(f => f.path === fieldPath);
+
             return (
               <Box key={fieldPath} sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
-                <Typography sx={{ minWidth: 200 }}>{fieldPath}</Typography>
+                <Typography sx={{ minWidth: 200 }}>
+                  {fieldPath}
+                  {field?.required && <span style={{ color: 'red' }}> *</span>}
+                </Typography>
                 <TextField
                   size="small"
                   value={fieldValue}
                   onChange={(e) => updateFieldValue(fieldPath, e.target.value)}
                   placeholder={`Enter ${fieldPath}`}
                   sx={{ flexGrow: 1 }}
+                  required={field?.required}
+                  type={field?.type === 'number' || field?.type === 'integer' ? 'number' : 'text'}
                 />
                 <Button
                   size="small"

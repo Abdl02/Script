@@ -1,16 +1,38 @@
 import axios from 'axios';
 import type { TestScenario, Field } from 'types/models';
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://0.0.0.0:8000';
+
+axios.interceptors.request.use(request => {
+  console.log('Request:', request.method?.toUpperCase(), request.url);
+  return request;
+});
+
+axios.interceptors.response.use(
+  response => {
+    console.log('Response:', response.status, response.config.url);
+    return response;
+  },
+  error => {
+    console.error('API Error:', error.message, error.config?.url);
+    return Promise.reject(error);
+  }
+);
 
 export const api = {
-    async getEnvironments(): Promise<Record<string, any>> {
+  async getEnvironments(): Promise<Record<string, any>> {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/environments`);
       return response.data;
     } catch (error) {
       console.error('Error fetching environments:', error);
-      throw error;
+      // Return default environment if API fails
+      return {
+        "localDev": {
+          "url": "http://localhost:8099",
+          "type": "localDev"
+        }
+      };
     }
   },
 
@@ -20,7 +42,7 @@ export const api = {
       return response.data;
     } catch (error) {
       console.error(`Error validating scenario ${name}:`, error);
-      throw error;
+      return { valid: false, message: "Validation failed" };
     }
   },
 
@@ -51,11 +73,19 @@ export const api = {
     try {
       console.log('Fetching scenarios from:', `${API_BASE_URL}/api/scenarios`);
       const response = await axios.get(`${API_BASE_URL}/api/scenarios`);
-      console.log('Response:', response.data);
-      return Array.isArray(response.data) ? response.data : [];
+      console.log('Scenarios response:', response.data);
+
+      if (Array.isArray(response.data)) {
+        return response.data.filter(item => typeof item === 'string');
+      } else if (response.data && typeof response.data === 'object') {
+        const scenarios = response.data.scenarios || [];
+        return Array.isArray(scenarios) ? scenarios.filter(item => typeof item === 'string') : [];
+      }
+
+      return [];
     } catch (error) {
       console.error('Error fetching scenarios:', error);
-      throw error;
+      return [];
     }
   },
 
@@ -64,33 +94,41 @@ export const api = {
       const response = await axios.get(`${API_BASE_URL}/api/scenarios/${name}`);
       return {
         name: response.data.name,
-        id: response.data.id || '',
+        id: response.data.id || `id_${name}`,
         description: response.data.description || '',
         version: response.data.version || '1.0.0',
+        created_at: response.data.created_at || new Date().toISOString(),
+        updated_at: response.data.updated_at || new Date().toISOString(),
+        requests: response.data.requests || []
+      };
+    } catch (error) {
+      console.error(`Error fetching scenario ${name}:`, error);
+      // Return a default scenario to prevent UI errors
+      return {
+        name: name,
+        id: `id_${name}`,
+        description: 'Error loading scenario details',
+        version: '1.0.0',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         requests: []
       };
-    } catch (error) {
-      console.error(`Error fetching scenario ${name}:`, error);
-      throw error;
     }
   },
 
   async createScenario(scenario: Partial<TestScenario>): Promise<any> {
     try {
-      // Send only the data the backend expects
       const requestData = {
         name: scenario.name,
-        id: scenario.id,
-        description: scenario.description,
-        version: scenario.version,
-        requests: scenario.requests
+        id: scenario.id || `id_${scenario.name}_${Date.now()}`,
+        description: scenario.description || '',
+        version: scenario.version || '1.0.0',
+        requests: scenario.requests || []
       };
 
       console.log('Creating scenario:', requestData);
       const response = await axios.post(`${API_BASE_URL}/api/scenarios`, requestData);
-      console.log('Response:', response.data);
+      console.log('Create scenario response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error creating scenario:', error);
@@ -100,26 +138,70 @@ export const api = {
 
   async runScenario(name: string): Promise<any> {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/scenarios/${name}/run`, {});
+      const response = await axios.post(`${API_BASE_URL}/api/scenarios/${name}/run`);
       return response.data;
     } catch (error) {
       console.error(`Error running scenario ${name}:`, error);
-      throw error;
+      return { success: false, message: "Execution failed" };
     }
   },
 
   async getEndpointFields(endpointType: string): Promise<Field[]> {
     try {
+      console.log(`Fetching fields for ${endpointType} from ${API_BASE_URL}/api/fields/${endpointType}`);
       const response = await axios.get(`${API_BASE_URL}/api/fields/${endpointType}`);
-      // Convert response to match our Field interface
+      console.log('Fields response:', response.data);
+
+      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+        console.warn(`No fields returned for ${endpointType}, using defaults`);
+
+        // Return default fields for api-specs
+        if (endpointType === 'api-specs') {
+          return [
+            { path: 'name', type: 'string', required: true },
+            { path: 'description', type: 'string' },
+            { path: 'contextPath', type: 'string' },
+            { path: 'backendServiceUrl', type: 'string' },
+            { path: 'status', type: 'string' },
+            { path: 'type', type: 'string' },
+            { path: 'style', type: 'string' },
+            { path: 'authType', type: 'string' },
+            { path: 'metaData.version', type: 'string' },
+            { path: 'metaData.owner', type: 'string' },
+            { path: 'addVersionToContextPath', type: 'boolean' }
+          ];
+        }
+
+        return [
+          { path: 'name', type: 'string', required: true },
+          { path: 'description', type: 'string' }
+        ];
+      }
+
+      // Convert API response to match our Field interface
       return response.data.map((item: any) => ({
         path: item.path || item.name || '',
         type: item.type || 'string',
-        required: item.required || false
+        required: !!item.required
       }));
     } catch (error) {
       console.error(`Error fetching fields for ${endpointType}:`, error);
-      throw error;
+
+      // Return default fields instead of throwing
+      if (endpointType === 'api-specs') {
+        return [
+          { path: 'name', type: 'string', required: true },
+          { path: 'description', type: 'string' },
+          { path: 'contextPath', type: 'string' },
+          { path: 'backendServiceUrl', type: 'string' },
+          { path: 'status', type: 'string' }
+        ];
+      }
+
+      return [
+        { path: 'name', type: 'string', required: true },
+        { path: 'description', type: 'string' }
+      ];
     }
   },
 
@@ -129,7 +211,7 @@ export const api = {
       return response.data;
     } catch (error) {
       console.error(`Error fetching templates for ${endpointType}:`, error);
-      throw error;
+      return [];
     }
   },
 };
