@@ -4,7 +4,6 @@ import type { TestScenario, Field } from 'types/models';
 const API_BASE_URL = 'http://localhost:5000';
 
 export const api = {
-  // Scenario operations
   async getScenarios(): Promise<string[]> {
     const response = await axios.get(`${API_BASE_URL}/api/scenarios`);
     return response.data;
