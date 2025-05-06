@@ -1,26 +1,26 @@
-created_at: '2025-05-04T13:24:33.706137Z'
-description: fewfe
-id: g5
-name: efare
+created_at: '2025-05-05T06:37:41.126322Z'
+description: dsadsa
+id: '35241'
+name: dsdasd
 requests:
 - assertions:
   - type: json_path
     value: '1'
   body:
     addVersionToContextPath: true
-    authType: API_KEY
+    authType: BASIC
     backendServiceUrl: https://jsonplaceholder.typicode.com
-    contextPath: /f60585620c24
-    description: Description for f60585620c24
+    contextPath: /dc466d2e3b1b
+    description: Description for dc466d2e3b1b
     metaData:
       category: Test Category
-      owner: 4f59d9e1af2e
+      owner: 6182ffb321d6
       tags:
-      - tag-40a4fcbaed4a
-      - tag-847e4c813b78
-      - tag-8b366e7bb5c0
-      version: 6.4.2
-    name: f60585620c24
+      - tag-f12bf75cae39
+      - tag-be2c17fd3dc3
+      - tag-8df4c876bb3e
+      version: 1.3.8
+    name: test02
     predicates: []
     requestPolicies: []
     responsePolicies: []
@@ -29,37 +29,17 @@ requests:
     type: PARTNER
   headers: {}
   method: POST
-  name: create
+  name: create api
   save_as: create_api
   url: http://localhost:8099/api-specs
 - assertions:
-  - type: json_path
-    value: '1'
-  body:
-    addVersionToContextPath: true
-    authType: BASIC
-    backendServiceUrl: https://jsonplaceholder.typicode.com
-    contextPath: /8c26202ed605
-    description: Description for 8c26202ed605
-    metaData:
-      category: Test Category
-      owner: ab17e29b21e5
-      tags:
-      - tag-f5e81afd1fe7
-      - tag-3ae12e585521
-      - tag-95764af48ced
-      version: 8.0.5
-    name: 8c26202ed605
-    predicates: []
-    requestPolicies: []
-    responsePolicies: []
-    status: DRAFT
-    style: GRPC
-    type: PARTNER
+  - type: status_code
+    value: '200'
+  body: {}
   headers: {}
   method: PUT
-  name: edit
-  save_as: edit
+  name: edit api
+  save_as: edit_api
   url: http://localhost:8099/api-specs
-updated_at: '2025-05-04T13:24:33.706137Z'
-version: '11'
+updated_at: '2025-05-05T06:37:41.126322Z'
+version: dsad
