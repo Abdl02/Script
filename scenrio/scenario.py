@@ -1083,3 +1083,33 @@ def create_new_scenario():
         requests=requests,
     )
     return new_scenario
+
+
+def get_value_from_path(data, path):
+    """Helper function to get a value from a nested dictionary using a path string"""
+    if not path:
+        return None
+
+    parts = path.split('.')
+    current = data
+
+    for part in parts:
+        if '[' in part and ']' in part:
+            name = part[:part.index('[')]
+            index = int(part[part.index('[') + 1:part.index(']')])
+
+            if name not in current:
+                return None
+
+            current = current[name]
+            if not isinstance(current, list) or index >= len(current):
+                return None
+
+            current = current[index]
+        else:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
+            else:
+                return None
+
+    return current

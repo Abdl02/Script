@@ -413,7 +413,7 @@ class PublicationFlowValidations:
 class ValidatorFactory:
     @staticmethod
     def get_validator(endpoint_type: str):
-        """Get the appropriate validator based on endpoint type"""
+        """Get the appropriate validator based on the endpoint type"""
         validators = {
             "api-specs": ApiSpecValidations,
             "environment": EnvironmentModelValidations,

@@ -4,7 +4,12 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from runtime.flow_runner import run, save_scenario, list_scenarios
-from scenrio.scenario import create_new_scenario, TestScenario
+from scenrio.scenario import create_new_scenario, TestScenario, get_all_field_paths
+from runtime.flow_runner import get_scenario_path, is_yaml_exists, yaml_file_to_object
+from scenrio.scenario import get_value_from_path
+from validation.endpoint_validations import ValidatorFactory
+
+from scenrio.scenario import TestScenario
 import json
 import os
 import traceback
@@ -60,25 +65,25 @@ def get_scenarios():
         print(traceback.format_exc())
         return []
 
-# TODO: Need to list the request in the response, and correct res(TestScenario) [Abd]
+# TODO: Need to list the request in the response, and correct res(TestScenario) instead string with all fields [just the request] [Abd]
 @app.get("/api/scenarios/{name}")
 def get_scenario(name: str):
     """Return full scenario details by name"""
     try:
-        return {
-            "name": name,
-            "id": f"id_{name}",
-            "description": f"Description for {name}",
-            "version": "1.0.0",
-            "created_at": datetime.now().isoformat() + "Z",
-            "updated_at": datetime.now().isoformat() + "Z",
-            "requests": []
-        }
+        path = get_scenario_path(name)
+
+        if not is_yaml_exists(path):
+            raise HTTPException(status_code=404, detail=f"Scenario '{name}' not found")
+
+        scenario = yaml_file_to_object(path, TestScenario)
+        scenario_dict = scenario.to_dict()
+
+        return scenario_dict
+
     except Exception as e:
         print(f"Error getting scenario {name}: {str(e)}")
         print(traceback.format_exc())
         raise HTTPException(status_code=404, detail=f"Scenario '{name}' not found: {str(e)}")
-
 
 @app.post("/api/scenarios")
 def create_scenario(scenario: ScenarioRequest):
@@ -180,34 +185,45 @@ def get_execution_status(execution_id: str):
     # Implement a way to track long-running executions
     return {"status": "completed", "results": {}}
 
-# TODO add_field_from_path ,extract_fields_from_schema,fill_remaining_fields_with_random_data [Abd]
+# TODO add_field_from_path ,extract_fields_from_schema,fill_remaining_fields_with_random_data [Abd] handle get field according to get_validator that in endpoint_validations.py and fill them randomly if not filled as in enhanced_body_creation in scenario.py
 # ----- FIELD AND TEMPLATE ROUTES -----
 @app.get("/api/fields/{endpoint_type}")
 def get_fields(endpoint_type: str):
-    """Return available fields for an endpoint type with path property"""
+    """Return available fields for an endpoint type with path property using validator"""
     print(f"Retrieving fields for endpoint type: {endpoint_type}")
 
-    if endpoint_type == "api-specs":
-        return [
-            {"path": "name", "type": "string", "required": True},
-            {"path": "description", "type": "string"},
-            {"path": "contextPath", "type": "string"},
-            {"path": "backendServiceUrl", "type": "string"},
-            {"path": "status", "type": "string"},
-            {"path": "type", "type": "string"},
-            {"path": "style", "type": "string"},
-            {"path": "authType", "type": "string"},
-            {"path": "metaData.version", "type": "string"},
-            {"path": "metaData.owner", "type": "string"},
-            {"path": "metaData.category", "type": "string"},
-            {"path": "metaData.tags", "type": "array"},
-            {"path": "addVersionToContextPath", "type": "boolean"}
-        ]
+    validator = ValidatorFactory.get_validator(endpoint_type)
 
-    return [
-        {"path": "field1", "type": "string"},
-        {"path": "field2", "type": "string"}
-    ]
+    if validator and hasattr(validator, 'get_valid_body'):
+        sample_body = validator.get_valid_body()
+        fields = get_all_field_paths(sample_body)
+        result = []
+        for field_path in fields:
+            field_type = "string"
+
+            field_value = get_value_from_path(sample_body, field_path)
+            if isinstance(field_value, bool):
+                field_type = "boolean"
+            elif isinstance(field_value, int):
+                field_type = "integer"
+            elif isinstance(field_value, float):
+                field_type = "number"
+            elif isinstance(field_value, list):
+                field_type = "array"
+            elif isinstance(field_value, dict):
+                field_type = "object"
+
+            required = field_path == "name" or field_path.endswith(".name")
+
+            result.append({
+                "path": field_path,
+                "type": field_type,
+                "required": required
+            })
+
+        return result
+
+    return []
 
 #TODO: handle all endpoints body fields types,new feature [zaro,Abd]
 @app.get("/api/templates/{endpoint_type}")
