@@ -122,23 +122,54 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
     showSnackbar('Template loaded', 'success');
   };
 
-  const getEndpointType = (url: string): string => {
-    if (!url) return 'api-specs'; // Default
+const getEndpointType = (url: string): string => {
+  if (!url) return 'api-specs'; // Default
 
-    try {
-      const urlParts = url.split('/');
-      const apiPathIndex = urlParts.findIndex(part => part === 'api');
+  try {
+    const urlWithoutParams = url.split('?')[0];
 
-      if (apiPathIndex >= 0 && apiPathIndex + 1 < urlParts.length) {
-        return urlParts[apiPathIndex + 1];
+    if (url.includes('/consumer')) return 'consumer';
+    if (url.includes('/environment')) return 'environment';
+
+    let path = urlWithoutParams;
+    if (url.includes('://')) {
+      try {
+        const urlObj = new URL(url);
+        path = urlObj.pathname;
+      } catch (e) {
+        console.warn('URL parsing failed, continuing with original path');
       }
-
-      return urlParts[3] || 'api-specs';
-    } catch (error) {
-      console.error('Error extracting endpoint type:', error);
-      return 'api-specs';
     }
-  };
+
+    const pathParts = path.split('/').filter(part => part.trim() !== '');
+
+    const apiIndex = pathParts.findIndex(part => part.toLowerCase() === 'api');
+    if (apiIndex >= 0 && apiIndex + 1 < pathParts.length) {
+      return pathParts[apiIndex + 1];
+    }
+
+    const knownEndpoints = ['consumer', 'environment', 'api-specs', 'clients'];
+    for (const part of pathParts) {
+      const lowerPart = part.toLowerCase();
+      if (knownEndpoints.includes(lowerPart)) {
+        return lowerPart;
+      }
+    }
+
+    if (pathParts.length > 0) {
+      const firstSegment = pathParts[0].toLowerCase();
+      if (firstSegment.startsWith('v') && /v\d+/.test(firstSegment)) {
+        return pathParts.length > 1 ? pathParts[1] : 'api-specs';
+      }
+      return firstSegment;
+    }
+
+    return 'api-specs';
+  } catch (error) {
+    console.error('Error extracting endpoint type:', error);
+    return 'api-specs';
+  }
+};
 
   const handleMethodChange = (method: string) => {
     const newData: Partial<APIRequest> = { method };

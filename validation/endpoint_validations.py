@@ -408,8 +408,6 @@ class PublicationFlowValidations:
             ]
         }
 
-
-# Factory for getting validators
 class ValidatorFactory:
     validators = {
         "api-specs": ApiSpecValidations,
