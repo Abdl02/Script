@@ -411,19 +411,24 @@ class PublicationFlowValidations:
 
 # Factory for getting validators
 class ValidatorFactory:
+    validators = {
+        "api-specs": ApiSpecValidations,
+        "environment": EnvironmentModelValidations,
+        "authenticator": AuthenticatorModelValidations,
+        "policy": ApiPolicyValidations,
+        "consumer": ConsumerModelValidations,
+        "product": ProductModelValidations,
+        "plan": PlanModelValidations,
+        "subscription": SubscriptionModelValidations,
+        "global_policy": GlobalPolicyValidations,
+        "publication_flow": PublicationFlowValidations
+    }
     @staticmethod
     def get_validator(endpoint_type: str):
         """Get the appropriate validator based on endpoint type"""
-        validators = {
-            "api-specs": ApiSpecValidations,
-            "environment": EnvironmentModelValidations,
-            "authenticator": AuthenticatorModelValidations,
-            "policy": ApiPolicyValidations,
-            "consumer": ConsumerModelValidations,
-            "product": ProductModelValidations,
-            "plan": PlanModelValidations,
-            "subscription": SubscriptionModelValidations,
-            "global_policy": GlobalPolicyValidations,
-            "publication_flow": PublicationFlowValidations
-        }
-        return validators.get(endpoint_type.lower())
+        return ValidatorFactory.validators.get(endpoint_type.lower())
+
+    @staticmethod
+    def get_all_validator_names() -> List[str]:
+        """Get all available validator names"""
+        return list(ValidatorFactory.validators.keys())

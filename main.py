@@ -4,7 +4,6 @@ from scenrio.scenario import *
 
 def main():
     user_input = input("Enter the environment (e.g., localDev, production): ")
-    Config.set_selected_env(user_input)
 
     # 1. Run a scenario
     # 2. Create and save a scenario
@@ -23,7 +22,7 @@ def main():
                 scenario = create_new_scenario()
                 save_scenario(scenario)
             else:
-                run(scenario_name)
+                run(scenario_name, user_input)
         elif choice == '3':
             scenarios = list_scenarios()
             print("Available scenarios:", scenarios)

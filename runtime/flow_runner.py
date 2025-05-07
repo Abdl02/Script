@@ -1,31 +1,50 @@
+import traceback
 
-
+from config.config import Config
 from scenrio.scenario import *
 from util.yaml_utils import *
 import os
 
 
-def run(scenarioName: str) -> bool:
+def run(scenarioName: str, environment: str):
     """
     Run the specified scenario.
     """
-    try:
-        # Get the full path of the scenario file
-        path = get_scenario_path(scenarioName)
+    # Check if the scenario name is valid
+    if not scenarioName:
+        raise ValueError("Scenario name cannot be empty.")
+    # Check if the environment is valid
+    if not environment:
+        raise ValueError("Environment cannot be empty.")
 
-        # Check if the YAML file exists
-        is_yaml_exists(path)
+    Config.set_selected_env(environment)
 
-        # Load the scenario YAML file
-        scenario = yaml_file_to_object(path, TestScenario)
+    # Get the full path of the scenario file
+    path = get_scenario_path(scenarioName)
 
-        # Execute the scenario
-        scenario.execute()
+    # Check if the YAML file exists
+    isExists = is_yaml_exists(path)
+    if not isExists:
+        raise FileNotFoundError(f"Scenario '{scenarioName}' does not exist.")
 
-        return True  # Indicate success
-    except Exception as e:
-        print(f"Error while running scenario: {e}")
-        return False  # Indicate failure
+    # Load the scenario YAML file
+    scenario = yaml_file_to_object(path, TestScenario)
+
+    # Execute the scenario
+    results = scenario.execute()
+    numberOfFailedRequests = 0
+    for result in results:
+        # The results are dictionaries, not objects, so use dictionary access
+        if result["status"]["text"] == "FAILED":
+            numberOfFailedRequests += 1
+
+    final_results = {
+        "requests": results,
+        "numberOfRequests": len(results),
+        "status": "success" if numberOfFailedRequests == 0 else "failed",
+    }
+
+    return final_results
 
 def save_scenario(scenario: TestScenario) -> bool:
     """

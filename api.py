@@ -8,6 +8,7 @@ from scenrio.scenario import create_new_scenario, TestScenario
 import json
 import os
 import traceback
+from validation.endpoint_validations import ValidatorFactory
 
 app = FastAPI()
 
@@ -127,21 +128,18 @@ def create_scenario(scenario: ScenarioRequest):
         print(error_details)
         raise HTTPException(status_code=400, detail=error_details)
 
-# TODO: return a result, put the environment in the body [Mohammad]
-@app.post("/api/scenarios/{name}/run")
-def run_scenario(name: str):
-    """Run a scenario by name"""
-    try:
-        result = run(name)
-        return {
-            "message": f"Scenario '{name}' executed",
-            "success": result
-        }
-    except Exception as e:
-        print(f"Error running scenario {name}: {str(e)}")
-        print(traceback.format_exc())
-        raise HTTPException(status_code=400, detail=str(e))
 
+@app.post("/api/scenarios/{name}/run")
+def run_scenario(name: str, body: dict = Body(...)):
+    """Run a scenario by name and return the result"""
+    try:
+        environment = body.get("environment", "localDev")
+        print(f"Running scenario: {name} with environment: {environment}")
+        return run(name, environment)
+    except Exception as e:
+        error_details = f"Error running scenario '{name}': {str(e)}"
+        print(error_details)
+        raise HTTPException(status_code=400, detail=error_details)
 
 @app.get("/api/environments")
 def get_environments():
@@ -240,7 +238,14 @@ def get_templates(endpoint_type: str):
         {"template": f"Template for {endpoint_type}", "example": {"key": "value"}}
     ]
 
-# TODO: Implement an endpoint to handle fetching the urls as list with filtering [zaro]
+@app.get("/api/urls")
+def get_urls(chars: Optional[str] = None):
+    """Return a list of URLs based on the provided characters"""
+    # Implement logic to fetch URLs based on the provided characters
+    urls = ValidatorFactory.get_all_validator_names()
+    if chars:
+        urls = [url for url in urls if chars in url]
+    return urls
 
 if __name__ == "__main__":
     import uvicorn

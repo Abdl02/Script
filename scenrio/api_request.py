@@ -20,7 +20,7 @@ class APIRequest:
         self.response = None
         self.saved_data: Dict[str, Any] = {}
 
-    def execute(self, context: Dict[str, Any]) -> None:
+    def execute(self, context: Dict[str, Any]):
         """Executes the API request using the provided context for templating."""
         # Create a dictionary to collect execution details
         execution_details = {
@@ -29,71 +29,64 @@ class APIRequest:
             "details": {}
         }
 
-        try:
-            token = generate_token(Config.selected_env)
-            if token:
-                self.headers["Authorization"] = f"Bearer {token}"
+        token = generate_token(Config.selected_env)
+        if token:
+            self.headers["Authorization"] = f"Bearer {token}"
 
-            templated_url = self._template(self.url, context)
-            templated_headers = {k: self._template(v, context) for k, v in self.headers.items()}
-            templated_body = self._template_body(self.body, context)
+        templated_url = self._template(self.url, context)
+        templated_headers = {k: self._template(v, context) for k, v in self.headers.items()}
+        templated_body = self._template_body(self.body, context)
 
-            # Record request details
-            execution_details["details"]["request"] = {
-                "url": templated_url,
-                "method": self.method,
-                "headers": templated_headers,
-                "body": templated_body
-            }
+        # Record request details
+        execution_details["details"]["request"] = {
+            "url": templated_url,
+            "method": self.method,
+            "headers": templated_headers,
+            "body": templated_body
+        }
 
-            if self.method == "GET":
-                self.response = requests.get(templated_url, headers=templated_headers)
-            elif self.method == "POST":
-                self.response = requests.post(templated_url, headers=templated_headers, json=templated_body)
-            elif self.method == "PUT":
-                self.response = requests.put(templated_url, headers=templated_headers, json=templated_body)
-            elif self.method == "DELETE":
-                self.response = requests.delete(templated_url, headers=templated_headers)
-            # Add other HTTP methods as needed
-            else:
-                raise ValueError(f"Unsupported HTTP method: {self.method}")
+        if self.method == "GET":
+            self.response = requests.get(templated_url, headers=templated_headers)
+        elif self.method == "POST":
+            self.response = requests.post(templated_url, headers=templated_headers, json=templated_body)
+        elif self.method == "PUT":
+            self.response = requests.put(templated_url, headers=templated_headers, json=templated_body)
+        elif self.method == "DELETE":
+            self.response = requests.delete(templated_url, headers=templated_headers)
+        # Add other HTTP methods as needed
+        else:
+            raise ValueError(f"Unsupported HTTP method: {self.method}")
 
-            # Save response data if save_as is specified
-            if self.save_as:
-                try:
-                    response_json = self.response.json()
-                    self.saved_data = response_json
-                    # Update context immediately after saving
-                    context[self.save_as] = response_json
-                except json.JSONDecodeError:
-                    self.saved_data = {"status": self.response.status_code, "text": self.response.text}
-                    context[self.save_as] = self.saved_data
-
-            # Record response details
-            execution_details["details"]["response"] = {
-                "status_code": self.response.status_code,
-                "headers": dict(self.response.headers)
-            }
-
-            # Try to parse response as JSON
+        # Save response data if save_as is specified
+        if self.save_as:
             try:
                 response_json = self.response.json()
-                execution_details["details"]["response"]["body"] = response_json
+                self.saved_data = response_json
+                # Update context immediately after saving
+                context[self.save_as] = response_json
             except json.JSONDecodeError:
-                execution_details["details"]["response"]["body"] = self.response.text[
-                                                                   :500] if self.response.text else ""
+                self.saved_data = {"status": self.response.status_code, "text": self.response.text}
+                context[self.save_as] = self.saved_data
 
-            formatted_output = self.format_request_response_details(
-                execution_details, templated_url, templated_headers, templated_body
-            )
-            print(formatted_output)
+        # Record response details
+        execution_details["details"]["response"] = {
+            "status_code": self.response.status_code,
+            "headers": dict(self.response.headers)
+        }
 
-        except requests.exceptions.RequestException as e:
-            execution_details["status"] = "failed"
-            execution_details["details"]["error"] = str(e)
-            print(f"Error executing request '{self.name}': {e}")
-            print(f"Request details: {json.dumps(execution_details, indent=4)}")
-            raise e
+        # Try to parse response as JSON
+        try:
+            response_json = self.response.json()
+            execution_details["details"]["response"]["body"] = response_json
+        except json.JSONDecodeError:
+            execution_details["details"]["response"]["body"] = self.response.text[
+                                                               :500] if self.response.text else ""
+
+        formatted_output = self.format_request_response_details(
+            execution_details, templated_url, templated_headers, templated_body
+        )
+        return formatted_output
+
 
     def _template(self, value: str, context: Dict[str, Any]) -> str:
         """Enhanced templating for URLs and headers using the context, supporting both {{key}} and ${key} syntax."""
@@ -206,44 +199,33 @@ class APIRequest:
         return f"<APIRequest(name='{self.name}', method='{self.method}', url='{self.url}')>"
 
     def format_request_response_details(self, execution_details, templated_url, templated_headers, templated_body):
-        """Format request and response details into a structured output"""
-        status_emoji = "✅" if self.response.ok else "❌"
-        status_text = "Success" if self.response.ok else "Failed"
-        execution_details["status"] = "success" if self.response.ok else "failed"
+        """Format request and response details into structured JSON output and return as RunResult"""
+        # Set status in execution details
+        execution_details["status"] = "SUCCESS" if self.response.ok else "FAILED"
 
-        # Create formatted sections
-        header = f"\n{'=' * 50}\n  {self.name} - {status_emoji} {status_text} (Status: {self.response.status_code})\n{'=' * 50}"
+        # Create structured JSON output
+        formatted_json = {
+            "name": self.name,
+            "status": {
+                "code": self.response.status_code,
+                "text": "SUCCESS" if self.response.ok else "FAILED"
+            },
+            "request": {
+                "url": templated_url,
+                "method": self.method,
+                "headers": templated_headers,
+                "body": templated_body
+            },
+            "response": {
+                "status": self.response.status_code,
+                "body": execution_details['details']['response']['body'],
+                "headers": execution_details['details']['response'].get('headers', {})
+            }
+        }
 
-        request_section = [
-            "\n📤 REQUEST:",
-            f"  URL: {templated_url}",
-            f"  Method: {self.method}"
-        ]
-
-        if templated_headers:
-            request_section.append(f"  Headers:\n{json.dumps(templated_headers, indent=4).replace('^', '  ')}")
-
-        if templated_body:
-            request_section.append(f"  Body:\n{json.dumps(templated_body, indent=4).replace('^', '  ')}")
-
-        response_section = [
-            "\n📥 RESPONSE:",
-            f"  Status: {self.response.status_code}"
-        ]
-
-        response_body = execution_details['details']['response']['body']
-        if response_body:
-            if isinstance(response_body, dict) or isinstance(response_body, list):
-                response_section.append(f"  Body:\n{json.dumps(response_body, indent=4).replace('^', '  ')}")
-            else:
-                response_section.append(f"  Body: {response_body}")
-
-        # Combine all sections
-        output = [
-            header,
-            "\n".join(request_section),
-            "\n".join(response_section),
-            f"\n{'=' * 50}\n"
-        ]
-
-        return "\n".join(output)
+        status = "SUCCESS" if self.response.ok else "FAILED"
+        if self.response.ok:
+            formatted_json["status"]["text"] = "SUCCESS"
+        else:
+            formatted_json["status"]["text"] = "FAILED"
+        return formatted_json

@@ -36,12 +36,13 @@ class TestScenario:
             requests.append(APIRequest(**req_data))
         return requests
 
-    def execute(self, initial_context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def execute(self, initial_context: Dict[str, Any] = None) -> list[Any]:
         """Executes the requests in the scenario, handling dependencies based on 'save_as'."""
         context = initial_context if initial_context else {}
 
         # A Map to store the request with its response
         request_response_map = {}
+        runResults = []
 
         for request in self.requests:
 
@@ -57,9 +58,7 @@ class TestScenario:
                     if request.url:
                         self._process_template_url(request, request_response_map)
 
-
-
-                request.execute(context)
+                runResults.append(request.execute(context))
                 # Store the response content in the request_response_map
                 request_response_map[request.name] = request.response.content
                 if request.save_as and request.saved_data:
@@ -73,7 +72,7 @@ class TestScenario:
                 print(f"  {request.name}: Error during execution - {e}")
                 # Optionally stop the scenario execution here
             print("-" * 20)
-        return context
+        return runResults
 
     def _process_template_url(self, request: APIRequest, request_response_map: Dict[str, Any]):
         url_variables = self.extract_variables(request.url)
