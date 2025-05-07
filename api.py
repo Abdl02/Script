@@ -187,7 +187,7 @@ def get_execution_status(execution_id: str):
 
 # TODO add_field_from_path ,extract_fields_from_schema,fill_remaining_fields_with_random_data [Abd] handle get field according to get_validator that in endpoint_validations.py and fill them randomly if not filled as in enhanced_body_creation in scenario.py
 # ----- FIELD AND TEMPLATE ROUTES -----
-@app.get("/api/fields/{endpoint_type}")
+@app.get("/item/fields/{endpoint_type}")
 def get_fields(endpoint_type: str):
     """Return available fields for an endpoint type with path property using validator"""
     print(f"Retrieving fields for endpoint type: {endpoint_type}")
@@ -224,6 +224,61 @@ def get_fields(endpoint_type: str):
         return result
 
     return []
+
+# fetch when button next to url* ae pressed
+@app.post("/item/fields/{endpoint_type}")
+def fetch_body_fields(endpoint_type: str, body: Dict[str, Any] = Body(default=None)):
+    """
+    Fetch and analyze fields for a specific endpoint type from its URL
+
+    This endpoint is used when the user clicks the "Fetch" button next to the URL field
+    to dynamically extract fields based on the URL pattern.
+    """
+    try:
+        print(f"Fetching fields for endpoint type: {endpoint_type}")
+        url = body.get("url") if body else None
+
+        from validation.endpoint_validations import ValidatorFactory
+        from scenrio.scenario import get_all_field_paths, get_value_from_path
+
+        validator = ValidatorFactory.get_validator(endpoint_type)
+
+        if not validator or not hasattr(validator, 'get_valid_body'):
+            return {"fields": [], "message": f"No validator found for endpoint type: {endpoint_type}"}
+
+        sample_body = validator.get_valid_body()
+
+        fields = get_all_field_paths(sample_body)
+
+        result = []
+        for field_path in fields:
+            field_type = "string"  # Default type
+
+            field_value = get_value_from_path(sample_body, field_path)
+            if isinstance(field_value, bool):
+                field_type = "boolean"
+            elif isinstance(field_value, int):
+                field_type = "integer"
+            elif isinstance(field_value, float):
+                field_type = "number"
+            elif isinstance(field_value, list):
+                field_type = "array"
+            elif isinstance(field_value, dict):
+                field_type = "object"
+
+            required = field_path == "name" or field_path.endswith(".name")
+
+            result.append({
+                "path": field_path,
+                "type": field_type,
+                "required": required
+            })
+
+        return {"fields": result, "message": "Successfully retrieved fields"}
+    except Exception as e:
+        print(f"Error fetching fields: {str(e)}")
+        print(traceback.format_exc())
+        return {"fields": [], "message": f"Error fetching fields: {str(e)}"}
 
 #TODO: handle all endpoints body fields types,new feature [zaro,Abd]
 @app.get("/api/templates/{endpoint_type}")

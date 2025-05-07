@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { APIRequest, Assertion } from 'types/models';
 import { Card, Typography, TextField, Select, MenuItem, IconButton, FormControl,
          InputLabel, Box, Button, Grid, Accordion, AccordionSummary,
-         AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip, Alert } from '@mui/material';
+         AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip, Alert, Snackbar } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SaveIcon from '@mui/icons-material/Save';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import JsonView from '@uiw/react-json-view';
 import { FieldSelector } from './FieldSelector';
 import { api } from 'api/client';
@@ -31,6 +32,9 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
   const [templateName, setTemplateName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('info');
 
   const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
 
@@ -60,6 +64,12 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
       onChange({ body: {} });
     }
   }, [request.method]);
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
 
   const handleBodyUpdate = (body: any) => {
     onChange({ body });
@@ -96,9 +106,11 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
       setBodyTemplates(templates);
       setTemplateName('');
       setError(null);
+      showSnackbar('Template saved successfully', 'success');
     } catch (error) {
       console.error('Failed to save template:', error);
       setError('Failed to save template. Please try again.');
+      showSnackbar('Failed to save template', 'error');
     } finally {
       setLoading(false);
     }
@@ -107,6 +119,7 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
   const loadTemplate = (templateBody: any) => {
     onChange({ body: templateBody });
     setShowBodyEditor(true);
+    showSnackbar('Template loaded', 'success');
   };
 
   const getEndpointType = (url: string): string => {
@@ -142,6 +155,153 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
       onChange({ headers });
     } catch (err) {
       console.error('Invalid header JSON:', err);
+      showSnackbar('Invalid JSON format for headers', 'error');
+    }
+  };
+
+  // Helper function to get value at a path
+  const getValueAtPath = (obj: any, path: string) => {
+    if (!obj || !path) return undefined;
+
+    const parts = path.split('.');
+    let current = obj;
+
+    for (const part of parts) {
+      // Handle array notation like field[0]
+      if (part.includes('[') && part.includes(']')) {
+        const name = part.substring(0, part.indexOf('['));
+        const index = parseInt(part.substring(part.indexOf('[') + 1, part.indexOf(']')));
+
+        if (!current[name] || !Array.isArray(current[name]) || index >= current[name].length) {
+          return undefined;
+        }
+        current = current[name][index];
+      } else {
+        if (current === undefined || current === null || !(part in current)) {
+          return undefined;
+        }
+        current = current[part];
+      }
+    }
+
+    return current;
+  };
+
+  // Helper function to set a value at a specific path in an object
+  const setValueAtPath = (obj: any, path: string, value: any) => {
+    if (!path) return obj;
+
+    const parts = path.split('.');
+    let current = obj;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      // Handle array notation like field[0]
+      if (part.includes('[') && part.includes(']')) {
+        const name = part.substring(0, part.indexOf('['));
+        const index = parseInt(part.substring(part.indexOf('[') + 1, part.indexOf(']')));
+
+        if (!current[name]) current[name] = [];
+        while (current[name].length <= index) {
+          current[name].push({});
+        }
+        current = current[name][index];
+      } else {
+        if (!current[part]) current[part] = {};
+        current = current[part];
+      }
+    }
+
+    const lastPart = parts[parts.length - 1];
+    if (lastPart.includes('[') && lastPart.includes(']')) {
+      const name = lastPart.substring(0, lastPart.indexOf('['));
+      const index = parseInt(lastPart.substring(lastPart.indexOf('[') + 1, lastPart.indexOf(']')));
+
+      if (!current[name]) current[name] = [];
+      while (current[name].length <= index) {
+        current[name].push(null);
+      }
+      current[name][index] = value;
+    } else {
+      current[lastPart] = value;
+    }
+
+    return obj;
+  };
+
+  // Helper function to get default value for a field type
+  const getDefaultValueForType = (type: string) => {
+    switch (type) {
+      case 'string':
+        return '';
+      case 'number':
+      case 'integer':
+        return 0;
+      case 'boolean':
+        return false;
+      case 'array':
+        return [];
+      case 'object':
+        return {};
+      default:
+        return '';
+    }
+  };
+
+  // Function to fetch fields from backend
+  const fetchFields = async () => {
+    try {
+      if (!request.url) {
+        showSnackbar('Please enter a URL first', 'error');
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      // Extract endpoint type from URL
+      const endpointType = getEndpointType(request.url);
+
+      // Call the API client method
+      const response = await api.fetchBodyFields(endpointType, request.url);
+
+      if (response && response.fields && response.fields.length > 0) {
+        // If body editor is not showing but we need a body, show it
+        if (!showBodyEditor && ['POST', 'PUT', 'PATCH'].includes(request.method)) {
+          setShowBodyEditor(true);
+        }
+
+        // Add fields to the body if body editor is visible
+        if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+          const newBody = { ...request.body } || {};
+
+          // Process each field
+          response.fields.forEach((field: any) => {
+            if (field.required && !getValueAtPath(newBody, field.path)) {
+              // For required fields, set them automatically
+              setValueAtPath(newBody, field.path, getDefaultValueForType(field.type));
+            }
+          });
+
+          onChange({ body: newBody });
+          showSnackbar(`${response.fields.length} fields fetched successfully`, 'success');
+
+          // Switch to the body tab if we're not already there
+          if (tabValue !== 1 && ['POST', 'PUT', 'PATCH'].includes(request.method)) {
+            setTabValue(1);
+          }
+        } else {
+          showSnackbar(`${response.fields.length} fields retrieved but not applied for ${request.method} method`, 'info');
+        }
+      } else {
+        showSnackbar('No fields returned from server', 'info');
+      }
+    } catch (error) {
+      console.error('Error fetching fields:', error);
+      setError('Failed to fetch fields. Please try again.');
+      showSnackbar('Failed to fetch fields', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -226,19 +386,30 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="URL"
-                value={request.url || ''}
-                onChange={(e) => onChange({ url: e.target.value })}
-                placeholder="http://localhost:8099/api-specs/{id}"
-                helperText={
-                  <>
-                    Use <code>{'{variable}'}</code> or <code>${'{variable.property}'}</code> for parameters
-                  </>
-                }
-                required
-              />
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                <TextField
+                  fullWidth
+                  label="URL"
+                  value={request.url || ''}
+                  onChange={(e) => onChange({ url: e.target.value })}
+                  placeholder="http://localhost:8099/api-specs/{id}"
+                  helperText={
+                    <>
+                      Use <code>{'{variable}'}</code> or <code>${'{variable.property}'}</code> for parameters
+                    </>
+                  }
+                  required
+                />
+                <Button
+                  variant="outlined"
+                  onClick={fetchFields}
+                  disabled={loading || !request.url}
+                  startIcon={<RefreshIcon />}
+                  sx={{ minWidth: '100px', height: '56px' }}
+                >
+                  Fetch
+                </Button>
+              </Box>
             </Grid>
             <Grid item xs={12}>
               <FormControlLabel
@@ -430,6 +601,17 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
           </Box>
         )}
       </AccordionDetails>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Accordion>
   );
 };

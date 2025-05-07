@@ -136,6 +136,21 @@ export const api = {
     }
   },
 
+  async fetchBodyFields(endpointType: string, url: string): Promise<any> {
+    try {
+      console.log(`Fetching fields for ${endpointType} with URL: ${url}`);
+     const response = await axios.post(`${API_BASE_URL}/item/fields/${endpointType}`, { url });
+
+      if (response.data && response.data.fields) {
+       return response.data;
+      }
+     return { fields: [], message: "No fields returned" };
+    } catch (error) {
+     console.error(`Error fetching fields for ${endpointType}:`, error);
+      throw error;
+    }
+  },
+
   async runScenario(name: string): Promise<any> {
     try {
       const response = await axios.post(`${API_BASE_URL}/api/scenarios/${name}/run`);
@@ -148,8 +163,8 @@ export const api = {
 
   async getEndpointFields(endpointType: string): Promise<Field[]> {
     try {
-      console.log(`Fetching fields for ${endpointType} from ${API_BASE_URL}/api/fields/${endpointType}`);
-      const response = await axios.get(`${API_BASE_URL}/api/fields/${endpointType}`);
+      console.log(`Fetching fields for ${endpointType} from ${API_BASE_URL}/item/fields/${endpointType}`);
+      const response = await axios.get(`${API_BASE_URL}/item/fields/${endpointType}`);
       console.log('Fields response:', response.data);
 
       if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
