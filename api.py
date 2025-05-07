@@ -60,7 +60,7 @@ def get_scenarios():
         print(traceback.format_exc())
         return []
 
-
+# TODO: Need to list the request in the response, and correct res(TestScenario) [Abd]
 @app.get("/api/scenarios/{name}")
 def get_scenario(name: str):
     """Return full scenario details by name"""
@@ -127,7 +127,7 @@ def create_scenario(scenario: ScenarioRequest):
         print(error_details)
         raise HTTPException(status_code=400, detail=error_details)
 
-
+# TODO: return a result, put the environment in the body [Mohammad]
 @app.post("/api/scenarios/{name}/run")
 def run_scenario(name: str):
     """Run a scenario by name"""
@@ -158,17 +158,7 @@ def get_environments():
             "dev": {"url": "https://dev.example.com", "type": "dev"}
         }
 
-
-@app.post("/api/scenarios/{name}/validate")
-def validate_scenario(name: str):
-    """Validate a scenario without running it"""
-    try:
-        return {"valid": True, "message": "Scenario structure is valid"}
-    except Exception as e:
-        print(f"Error validating scenario {name}: {str(e)}")
-        return {"valid": False, "message": str(e)}
-
-
+#TODO new feature [ Mohammad, Abd]
 @app.get("/api/templates/body/{endpoint_type}")
 def get_body_templates(endpoint_type: str):
     """Return saved body templates for specific endpoint types"""
@@ -183,14 +173,14 @@ def get_body_templates(endpoint_type: str):
         print(f"Error getting body templates for {endpoint_type}: {str(e)}")
         return {}
 
-
+#TODO Garbage, assertrion[delete]
 @app.get("/api/execute_status/{execution_id}")
 def get_execution_status(execution_id: str):
     """Get the status of a running scenario execution"""
     # Implement a way to track long-running executions
     return {"status": "completed", "results": {}}
 
-
+# TODO add_field_from_path ,extract_fields_from_schema,fill_remaining_fields_with_random_data [Abd]
 # ----- FIELD AND TEMPLATE ROUTES -----
 @app.get("/api/fields/{endpoint_type}")
 def get_fields(endpoint_type: str):
@@ -219,7 +209,7 @@ def get_fields(endpoint_type: str):
         {"path": "field2", "type": "string"}
     ]
 
-
+#TODO: handle all endpoints body fields types,new feature [zaro,Abd]
 @app.get("/api/templates/{endpoint_type}")
 def get_templates(endpoint_type: str):
     """Return templates for the specified endpoint type"""
@@ -249,6 +239,8 @@ def get_templates(endpoint_type: str):
     return [
         {"template": f"Template for {endpoint_type}", "example": {"key": "value"}}
     ]
+
+# TODO: Implement an endpoint to handle fetching the urls as list with filtering [zaro]
 
 if __name__ == "__main__":
     import uvicorn

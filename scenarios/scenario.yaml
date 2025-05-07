@@ -1,41 +1,27 @@
-name: "sa"
-id: "5"
-description: "sfdds"
-version: "fd"
-created_at: "2025-05-04T10:21:54.568579Z"
-updated_at: "2025-05-04T10:21:54.568579Z"
+created_at: '2025-05-06T16:17:18.541350Z'
+description: Description for scenario
+id: id_scenario
+name: scenario
 requests:
-  - name: "create api"
-    method: "POST"
-    url: "{{dgateConsoleApisBaseUrl}}/api-specs"
-    headers: {}
-    body:
-      name: "hfddi"
-      description: "Fault cxManagement API"
-      contextPath: "/tedst-hi"
-      type: "PUBLIC"
-      style: "REST"
-      metaData:
-        version: "1.5"
-      authType: "BASIC"
-    save_as: "create_api"
-    assertions:
-      - type: "json_path"
-        value: "1"
-  - name: "edit api"
-    method: "PUT"
-    url: "{{dgateConsoleApisBaseUrl}}/api-specs/{{create_api.apiSpecId}}"
-    headers: {}
-    body:
-      name: "hfddi"
-      description: "Fault cxManagement API"
-      contextPath: "/tedst-hi"
-      type: "PUBLIC"
-      style: "REST"
-      metaData:
-        version: "1.5"
-      authType: "KEYLESS"
-    save_as: "edit_api"
-    assertions:
-      - type: "json_path"
-        value: "1"
+- assertions:
+  - path: null
+    type: status_code
+    value: '200'
+  body: {}
+  headers: {}
+  method: POST
+  name: Create_Api
+  save_as: api
+  url: http://localhost:8099/api-specs
+- assertions:
+  - path: null
+    type: status_code
+    value: '200'
+  body: {}
+  headers: {}
+  method: PUT
+  name: Update  Api
+  save_as: null
+  url: http://localhost:8099/api-specs/{Create_Api.apiSpecId}
+updated_at: '2025-05-06T16:17:18.541350Z'
+version: 1.0.0
