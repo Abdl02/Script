@@ -1,7 +1,7 @@
 import traceback
 
 from config.config import Config
-from scenrio.scenario import *
+from scenario.scenario import *
 from util.yaml_utils import *
 import os
 

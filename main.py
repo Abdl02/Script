@@ -1,6 +1,6 @@
 from config.config import Config
 from runtime.flow_runner import run, save_scenario, list_scenarios
-from scenrio.scenario import *
+from scenario.scenario import *
 
 def main():
     user_input = input("Enter the environment (e.g., localDev, production): ")

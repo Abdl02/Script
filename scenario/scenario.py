@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import json
 from typing import List, Dict, Any
-from scenrio.api_request import APIRequest
+from scenario.api_request import APIRequest
 import datetime
 from dotenv import load_dotenv
 import os

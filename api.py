@@ -4,12 +4,12 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from runtime.flow_runner import run, save_scenario, list_scenarios
-from scenrio.scenario import create_new_scenario, TestScenario, get_all_field_paths
+from scenario.scenario import create_new_scenario, TestScenario, get_all_field_paths
 from runtime.flow_runner import get_scenario_path, is_yaml_exists, yaml_file_to_object
-from scenrio.scenario import get_value_from_path
+from scenario.scenario import get_value_from_path
 from validation.endpoint_validations import ValidatorFactory
 
-from scenrio.scenario import TestScenario
+from scenario.scenario import TestScenario
 import json
 import os
 import traceback
@@ -237,7 +237,7 @@ def fetch_body_fields(endpoint_type: str, body: Dict[str, Any] = Body(default=No
         url = body.get("url") if body else None
 
         from validation.endpoint_validations import ValidatorFactory
-        from scenrio.scenario import get_all_field_paths, get_value_from_path
+        from scenario.scenario import get_all_field_paths, get_value_from_path
 
         validator = ValidatorFactory.get_validator(endpoint_type)
 
