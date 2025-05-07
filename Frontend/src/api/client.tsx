@@ -151,15 +151,18 @@ export const api = {
     }
   },
 
-  async runScenario(name: string): Promise<any> {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/api/scenarios/${name}/run`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error running scenario ${name}:`, error);
-      return { success: false, message: "Execution failed" };
-    }
-  },
+  async runScenario(name: string, environment: string = 'localDev'): Promise<any> {
+  try {
+    const requestData = {
+      environment: environment,
+    };
+    const response = await axios.post(`${API_BASE_URL}/api/scenarios/${name}/run`, requestData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error running scenario ${name}:`, error);
+    return { success: false, message: "Execution failed" };
+  }
+},
 
   async getEndpointFields(endpointType: string): Promise<Field[]> {
     try {

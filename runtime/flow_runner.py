@@ -54,6 +54,15 @@ def save_scenario(scenario: TestScenario) -> bool:
         # Get the full path of the scenario file
         path = get_scenario_path(scenario.name)
 
+        # Check if a scenario with same name already exists
+        if is_yaml_exists(path):
+            raise FileExistsError(f"Scenario '{scenario.name}' already exists. Please choose a different name.")
+
+        for req in (scenario.requests or []):
+            # replace space with underscore
+            req.name = req.name.replace(" ", "_")
+            req.save_as = req.name
+
         # Save the scenario to the YAML file
         object_to_yaml_file(scenario, path)
 

@@ -62,7 +62,7 @@ function App() {
     if (selectedScenario) {
       try {
         showSnackbar(`Running scenario: ${selectedScenario.name}`, 'info');
-        const result = await api.runScenario(selectedScenario.name);
+        const result = await api.runScenario(selectedScenario.name, environment);
 
         if (result.success) {
           showSnackbar('Scenario executed successfully', 'success');
