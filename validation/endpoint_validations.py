@@ -413,13 +413,13 @@ class PublicationFlowValidations:
 class ValidatorFactory:
     validators = {
         "api-specs": ApiSpecValidations,
-        "environment": EnvironmentModelValidations,
+        "environments": EnvironmentModelValidations,
         "authenticator": AuthenticatorModelValidations,
         "policy": ApiPolicyValidations,
-        "consumer": ConsumerModelValidations,
-        "product": ProductModelValidations,
-        "plan": PlanModelValidations,
-        "subscription": SubscriptionModelValidations,
+        "consumers": ConsumerModelValidations,
+        "products": ProductModelValidations,
+        "plans": PlanModelValidations,
+        "subscriptions": SubscriptionModelValidations,
         "global_policy": GlobalPolicyValidations,
         "publication_flow": PublicationFlowValidations
     }
