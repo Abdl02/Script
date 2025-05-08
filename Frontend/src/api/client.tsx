@@ -232,4 +232,17 @@ export const api = {
       return [];
     }
   },
+
+  async getUrls(chars?: string): Promise<string[]> {
+    try {
+      const url = chars 
+        ? `${API_BASE_URL}/api/urls?chars=${encodeURIComponent(chars)}`
+        : `${API_BASE_URL}/api/urls`;
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching URL suggestions:', error);
+      return [];
+    }
+  },
 };

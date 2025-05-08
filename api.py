@@ -4,10 +4,9 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from runtime.flow_runner import run, save_scenario, list_scenarios
-from scenario.scenario import create_new_scenario, TestScenario, get_all_field_paths
+from scenario.scenario import get_all_field_paths
 from runtime.flow_runner import get_scenario_path, is_yaml_exists, yaml_file_to_object
 from scenario.scenario import get_value_from_path
-from validation.endpoint_validations import ValidatorFactory
 
 from scenario.scenario import TestScenario
 import json
@@ -39,8 +38,6 @@ class APIRequestModel(BaseModel):
     url: str
     headers: Dict[str, str] = {}
     body: Optional[Dict[str, Any]] = None
-    save_as: Optional[str] = None
-    assertions: List[Assertion] = []
 
 
 class ScenarioRequest(BaseModel):
@@ -98,10 +95,6 @@ def create_scenario(scenario: ScenarioRequest):
         requests_data = []
         for req in (scenario.requests or []):
             req_dict = req.dict()
-            assertions = []
-            for assertion in req_dict.get("assertions", []):
-                assertions.append(assertion)
-            req_dict["assertions"] = assertions
             requests_data.append(req_dict)
 
         new_scenario = TestScenario(
@@ -160,28 +153,6 @@ def get_environments():
             "localDev": {"url": "http://localhost:8099", "type": "localDev"},
             "dev": {"url": "https://dev.example.com", "type": "dev"}
         }
-
-#TODO new feature [ Mohammad, Abd]
-@app.get("/api/templates/body/{endpoint_type}")
-def get_body_templates(endpoint_type: str):
-    """Return saved body templates for specific endpoint types"""
-    try:
-        templates_file = "body_templates.json"
-        if os.path.exists(templates_file):
-            with open(templates_file, "r") as f:
-                templates = json.load(f)
-                return templates.get(endpoint_type, {})
-        return {}
-    except Exception as e:
-        print(f"Error getting body templates for {endpoint_type}: {str(e)}")
-        return {}
-
-#TODO Garbage, assertrion[delete]
-@app.get("/api/execute_status/{execution_id}")
-def get_execution_status(execution_id: str):
-    """Get the status of a running scenario execution"""
-    # Implement a way to track long-running executions
-    return {"status": "completed", "results": {}}
 
 # TODO add_field_from_path ,extract_fields_from_schema,fill_remaining_fields_with_random_data [Abd] handle get field according to get_validator that in endpoint_validations.py and fill them randomly if not filled as in enhanced_body_creation in scenario.py
 # ----- FIELD AND TEMPLATE ROUTES -----

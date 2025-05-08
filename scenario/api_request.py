@@ -8,15 +8,12 @@ from config.config import Config
 
 class APIRequest:
     def __init__(self, name: str, method: str, url: str, headers: Optional[Dict[str, str]] = None,
-                 body: Optional[Any] = None, save_as: Optional[str] = None,
-                 assertions: Optional[list[Dict[str, Any]]] = None):
+                 body: Optional[Any] = None):
         self.name = name
         self.method = method.upper()
         self.url = url
         self.headers = headers if headers is not None else {}
         self.body = body
-        self.save_as = save_as
-        self.assertions = assertions if assertions is not None else []
         self.response = None
         self.saved_data: Dict[str, Any] = {}
 
@@ -56,17 +53,6 @@ class APIRequest:
         # Add other HTTP methods as needed
         else:
             raise ValueError(f"Unsupported HTTP method: {self.method}")
-
-        # Save response data if save_as is specified
-        if self.save_as:
-            try:
-                response_json = self.response.json()
-                self.saved_data = response_json
-                # Update context immediately after saving
-                context[self.save_as] = response_json
-            except json.JSONDecodeError:
-                self.saved_data = {"status": self.response.status_code, "text": self.response.text}
-                context[self.save_as] = self.saved_data
 
         # Record response details
         execution_details["details"]["response"] = {
@@ -158,42 +144,6 @@ class APIRequest:
         elif isinstance(data, list):
             return [self._template_recursive(item, context) for item in data]
         return data
-
-    def validate_assertions(self) -> bool:
-        """Validates the assertions against the response."""
-        if not self.response:
-            raise Exception(f"Request '{self.name}' has not been executed yet.")
-
-        for assertion in self.assertions:
-            assertion_type = assertion.get("type")
-            expected_value = assertion.get("value")
-
-            if assertion_type == "status_code":
-                if self.response.status_code != int(expected_value):
-                    raise AssertionError(
-                        f"Assertion failed for '{self.name}': Expected status code {expected_value}, got {self.response.status_code}")
-            elif assertion_type == "json_path":
-                path = assertion.get("path")
-                try:
-                    from jsonpath_ng.ext import parse
-                    jsonpath_expression = parse(path)
-                    match = jsonpath_expression.find(self.response.json())
-                    if not match or str(match[0].value) != expected_value:
-                        raise AssertionError(
-                            f"Assertion failed for '{self.name}': JSON path '{path}' expected value '{expected_value}', got '{match[0].value if match else None}'")
-                except ImportError:
-                    print("Warning: 'jsonpath-ng' library not installed. JSON path assertions will be skipped.")
-                except json.JSONDecodeError:
-                    raise AssertionError(
-                        f"Assertion failed for '{self.name}': Cannot decode response as JSON for JSON path assertion.")
-            elif assertion_type == "response_body_contains":
-                if expected_value not in self.response.text:
-                    raise AssertionError(
-                        f"Assertion failed for '{self.name}': Response body does not contain '{expected_value}'")
-            # Add other assertion types as needed
-            else:
-                print(f"Warning: Unknown assertion type '{assertion_type}' for request '{self.name}'.")
-        return True
 
     def __repr__(self):
         return f"<APIRequest(name='{self.name}', method='{self.method}', url='{self.url}')>"

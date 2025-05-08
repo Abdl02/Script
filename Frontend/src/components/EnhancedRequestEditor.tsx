@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { APIRequest, Assertion } from 'types/models';
 import { Card, Typography, TextField, Select, MenuItem, IconButton, FormControl,
          InputLabel, Box, Button, Grid, Accordion, AccordionSummary,
-         AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip, Alert, Snackbar } from '@mui/material';
+         AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip, Alert, Snackbar,
+         Autocomplete } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -35,6 +36,8 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('info');
+  const [urlSuggestions, setUrlSuggestions] = useState<string[]>([]);
+  const [isLoadingUrlSuggestions, setIsLoadingUrlSuggestions] = useState(false);
 
   const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
 
@@ -64,6 +67,11 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
       onChange({ body: {} });
     }
   }, [request.method]);
+
+  // Load initial URL suggestions
+  useEffect(() => {
+    fetchUrlSuggestions('');
+  }, []);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
     setSnackbarMessage(message);
@@ -280,6 +288,18 @@ const getEndpointType = (url: string): string => {
   };
 
   // Function to fetch fields from backend
+  const fetchUrlSuggestions = async (inputValue: string) => {
+    try {
+      setIsLoadingUrlSuggestions(true);
+      const suggestions = await api.getUrls(inputValue);
+      setUrlSuggestions(suggestions);
+    } catch (error) {
+      console.error('Error fetching URL suggestions:', error);
+    } finally {
+      setIsLoadingUrlSuggestions(false);
+    }
+  };
+
   const fetchFields = async () => {
     try {
       if (!request.url) {
@@ -418,18 +438,31 @@ const getEndpointType = (url: string): string => {
             </Grid>
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                <TextField
+                <Autocomplete
+                  freeSolo
                   fullWidth
-                  label="URL"
+                  options={urlSuggestions}
                   value={request.url || ''}
-                  onChange={(e) => onChange({ url: e.target.value })}
-                  placeholder="http://localhost:8099/api-specs/{id}"
-                  helperText={
-                    <>
-                      Use <code>{'{variable}'}</code> or <code>${'{variable.property}'}</code> for parameters
-                    </>
-                  }
-                  required
+                  onInputChange={(_, newValue) => {
+                    onChange({ url: newValue });
+                    if (newValue && newValue.length > 2) {
+                      fetchUrlSuggestions(newValue);
+                    }
+                  }}
+                  loading={isLoadingUrlSuggestions}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="URL"
+                      placeholder="api-specs"
+                      helperText={
+                        <>
+                          Use <code>{'{variable}'}</code> or <code>${'{variable.property}'}</code> for parameters
+                        </>
+                      }
+                      required
+                    />
+                  )}
                 />
                 <Button
                   variant="outlined"

@@ -49,6 +49,32 @@ class ContactType(Enum):
     ADMINISTRATIVE = "ADMINISTRATIVE"
 
 
+def manipulate_and_create_random_data(body: Dict[str, Any], apiPath: str):
+    # Fetch the apiKey and match it with the validator
+
+    # Fetch the apiKey and match it with the validator
+    if apiPath.startswith("http"):
+        apiKey = apiPath.split("/")[-1]
+    else:
+        segments = apiPath.strip("/").split("/")
+        apiKey = segments[-1] if len(segments) == 1 else segments[-2]
+
+    # Match the apiKey with the validator
+    validator = ValidatorFactory.get_validator(apiKey)
+
+    if not validator or not hasattr(validator, 'get_valid_body'):
+        raise ValueError(f"No valid validator found for apiKey: {apiKey}")
+
+    # Generate random data using the validator
+    random_data = validator.get_valid_body()
+
+    # Merge the provided body with the random data
+    for key, value in random_data.items():
+        if key not in body or body[key] is None:
+            body[key] = value
+
+    return body
+
 # Validation rules based on ModelFactory
 class EndpointValidations:
     # Constants from ModelFactory

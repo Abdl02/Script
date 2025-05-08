@@ -1,10 +1,10 @@
-from config.envModel import envs
+from config.envModel import envs, Env
 
 
 class Config:
     # Static variable to store the selected environment
     selected_env_name = None
-    selected_env = None
+    selected_env:Env = None
 
     @staticmethod
     def set_selected_env(envName: str):
