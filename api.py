@@ -7,7 +7,7 @@ from runtime.flow_runner import run, save_scenario, list_scenarios
 from scenario.scenario import get_all_field_paths
 from runtime.flow_runner import get_scenario_path, is_yaml_exists, yaml_file_to_object
 from scenario.scenario import get_value_from_path
-
+from difflib import get_close_matches
 from scenario.scenario import TestScenario
 import json
 import os
@@ -161,7 +161,15 @@ def get_fields(endpoint_type: str):
     """Return available fields for an endpoint type with path property using validator"""
     print(f"Retrieving fields for endpoint type: {endpoint_type}")
 
-    validator = ValidatorFactory.get_validator(endpoint_type)
+    splited = endpoint_type.split("/")
+    all_validators = ValidatorFactory.validators
+    validator = all_validators.get(splited[0])
+
+    # if it was not found, find the most similar one
+    if not validator:
+        closest_match = get_close_matches(splited[0], all_validators, n=1)
+        if closest_match:
+            validator = ValidatorFactory.validators.get(closest_match[0])
 
     if validator and hasattr(validator, 'get_valid_body'):
         sample_body = validator.get_valid_body()
