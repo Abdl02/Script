@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { APIRequest, Assertion } from 'types/models';
+import { APIRequest } from 'types/models';
 import { Card, Typography, TextField, Select, MenuItem, IconButton, FormControl,
          InputLabel, Box, Button, Grid, Accordion, AccordionSummary,
          AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip, Alert, Snackbar,
@@ -81,26 +81,6 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
 
   const handleBodyUpdate = (body: any) => {
     onChange({ body });
-  };
-
-  const addAssertion = () => {
-    const newAssertions: Assertion[] = [...(request.assertions || []), {
-      type: 'status_code',
-      value: '200'
-    }];
-    onChange({ assertions: newAssertions });
-  };
-
-  const updateAssertion = (index: number, updated: Partial<Assertion>) => {
-    const assertions = [...(request.assertions || [])];
-    assertions[index] = { ...assertions[index], ...updated };
-    onChange({ assertions });
-  };
-
-  const removeAssertion = (index: number) => {
-    const assertions = [...(request.assertions || [])];
-    assertions.splice(index, 1);
-    onChange({ assertions });
   };
 
   const handleSaveTemplate = async () => {
@@ -396,7 +376,6 @@ const getEndpointType = (url: string): string => {
         >
           <Tab label="Basic" />
           <Tab label="Body" disabled={!['POST', 'PUT', 'PATCH'].includes(request.method || '')} />
-          <Tab label="Assertions" />
           {showAdvanced && <Tab label="Advanced" />}
         </Tabs>
 
@@ -572,54 +551,6 @@ const getEndpointType = (url: string): string => {
                 />
               </Box>
             )}
-          </Box>
-        )}
-
-        {tabValue === 2 && (
-          <Box>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-              Assertions
-            </Typography>
-
-            {(request.assertions || []).map((assertion, index) => (
-              <Box key={index} sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <FormControl sx={{ minWidth: 200 }}>
-                  <InputLabel>Type</InputLabel>
-                  <Select
-                    value={assertion.type || 'status_code'}
-                    label="Type"
-                    onChange={(e) => updateAssertion(index, { type: e.target.value as Assertion['type'] })}
-                  >
-                    <MenuItem value="status_code">Status Code</MenuItem>
-                    <MenuItem value="json_path">JSON Path</MenuItem>
-                    <MenuItem value="response_body_contains">Body Contains</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <TextField
-                  label="Expected Value"
-                  value={assertion.value || ''}
-                  onChange={(e) => updateAssertion(index, { value: e.target.value })}
-                />
-
-                {assertion.type === 'json_path' && (
-                  <TextField
-                    label="JSON Path"
-                    value={assertion.path || ''}
-                    onChange={(e) => updateAssertion(index, { path: e.target.value })}
-                    placeholder="$.data.id"
-                  />
-                )}
-
-                <IconButton color="error" onClick={() => removeAssertion(index)}>
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            ))}
-
-            <Button variant="outlined" size="small" onClick={addAssertion}>
-              Add Assertion
-            </Button>
           </Box>
         )}
 

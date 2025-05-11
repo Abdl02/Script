@@ -358,9 +358,9 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
         // Ensure array has enough elements
         while (current[fieldName].length <= index) {
           // Use appropriate default value based on context
-          const defaultValue = fieldType === 'object' ? {} : 
-                              fieldType === 'array' ? [] : 
-                              fieldType === 'number' || fieldType === 'integer' ? 0 : 
+          const defaultValue = fieldType === 'object' ? {} :
+                              fieldType === 'array' ? [] :
+                              fieldType === 'number' || fieldType === 'integer' ? 0 :
                               fieldType === 'boolean' ? false : '';
           current[fieldName].push(defaultValue);
         }
@@ -372,8 +372,8 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
         if (typeof fieldValue === 'object' && fieldValue !== null) {
           convertedValue = fieldValue; // Keep objects and arrays as is
         } else if (fieldType === 'boolean') {
-          convertedValue = typeof fieldValue === 'string' 
-            ? fieldValue.toLowerCase() === 'true' 
+          convertedValue = typeof fieldValue === 'string'
+            ? fieldValue.toLowerCase() === 'true'
             : Boolean(fieldValue);
         } else if (fieldType === 'number' || fieldType === 'integer') {
           if (typeof fieldValue === 'string' && fieldValue.trim() !== '') {
@@ -744,6 +744,34 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                         {field?.required && <span style={{ color: 'red' }}> *</span>}
                         {isCustomField && <span style={{ color: 'blue' }}> (custom)</span>}
                       </Typography>
+
+                        {/* Field Type Selector */}
+                        <Select
+                          size="small"
+                          value={field?.type || 'string'}
+                          onChange={(e) => {
+                            const newType = e.target.value;
+                            const newValue = (() => {
+                              switch (newType) {
+                                case 'boolean': return false;
+                                case 'number': return 0;
+                                case 'array': return [];
+                                case 'object': return {};
+                                default: return '';
+                              }
+                            })();
+                            updateFieldValue(fieldPath, newValue);
+                            // Optionally update the field type in the `fields` state if needed
+                          }}
+                          sx={{ minWidth: 150 }}
+                        >
+                          <MenuItem value="string">String</MenuItem>
+                          <MenuItem value="number">Number</MenuItem>
+                          <MenuItem value="boolean">Boolean</MenuItem>
+                          <MenuItem value="array">Array</MenuItem>
+                          <MenuItem value="object">Object</MenuItem>
+                        </Select>
+
 
                       {field?.type === 'boolean' ? (
                         <FormControlLabel

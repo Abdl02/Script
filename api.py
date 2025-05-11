@@ -25,13 +25,6 @@ app.add_middleware(
 )
 
 
-# ----- Pydantic models matching the frontend's expected structure -----
-class Assertion(BaseModel):
-    type: str
-    value: str
-    path: Optional[str] = None
-
-
 class APIRequestModel(BaseModel):
     name: str
     method: str
@@ -87,8 +80,6 @@ def get_scenario(name: str):
 def create_scenario(scenario: ScenarioRequest):
     """Create a new scenario with data from the frontend"""
     try:
-        print(f"Received scenario data: {scenario.dict()}")
-
         if not scenario.id:
             scenario.id = f"id_{scenario.name}_{datetime.now().timestamp()}"
 
@@ -107,12 +98,8 @@ def create_scenario(scenario: ScenarioRequest):
             requests=requests_data
         )
 
-        print(f"Created scenario object: {new_scenario.to_dict()}")
-
         # Save the scenario
         save_result = save_scenario(new_scenario)
-        print(f"Save result: {save_result}")
-
         return {
             "message": f"Scenario '{scenario.name}' created",
             "success": save_result,
@@ -123,7 +110,6 @@ def create_scenario(scenario: ScenarioRequest):
         }
     except Exception as e:
         error_details = f"Error creating scenario: {str(e)}\n{traceback.format_exc()}"
-        print(error_details)
         raise HTTPException(status_code=400, detail=error_details)
 
 

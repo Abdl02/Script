@@ -209,34 +209,6 @@ export const ScenarioForm: React.FC<ScenarioFormProps> = ({
               disabled={!!scenario} // Disable editing ID for existing scenarios
             />
           </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Description"
-              multiline
-              rows={2}
-              value={formData.description || ''}
-              onChange={(e) => handleChange('description', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Version"
-              value={formData.version || ''}
-              onChange={(e) => handleChange('version', e.target.value)}
-            />
-          </Grid>
-          {environment && (
-            <Grid item xs={6}>
-              <Typography variant="body1">
-                Environment: <strong>{environment}</strong>
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                You can change the environment in Settings
-              </Typography>
-            </Grid>
-          )}
         </Grid>
       </Paper>
 

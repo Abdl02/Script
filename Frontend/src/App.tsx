@@ -12,6 +12,7 @@ import { ScenarioForm } from 'components/ScenarioForm';
 import { EnvironmentSelector } from 'components/EnvironmentSelector';
 import { api } from 'api/client';
 import type { TestScenario } from 'types/models';
+import ScenarioResults from './components/ScenarioResults';
 
 const theme = createTheme({
   palette: {
@@ -30,6 +31,8 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [environment, setEnvironment] = useState('localDev');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' as 'info' | 'success' | 'error' });
+  const [scenarioResults, setScenarioResults] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   const showSnackbar = (message: string, severity: 'info' | 'success' | 'error' = 'info') => {
     setSnackbar({ open: true, message, severity });
@@ -59,20 +62,21 @@ function App() {
   };
 
   const handleRunScenario = async () => {
-    if (selectedScenario) {
-      try {
-        showSnackbar(`Running scenario: ${selectedScenario.name}`, 'info');
-        const result = await api.runScenario(selectedScenario.name, environment);
+    if (!selectedScenario) {
+      showSnackbar('No scenario selected', 'error');
+      return;
+    }
 
-        if (result.success) {
-          showSnackbar('Scenario executed successfully', 'success');
-        } else {
-          showSnackbar(`Scenario execution failed: ${result.message}`, 'error');
-        }
-      } catch (error) {
-        console.error('Failed to run scenario:', error);
-        showSnackbar('Failed to run scenario', 'error');
-      }
+    setLoading(true); // Set loading to true
+    try {
+      const result = await api.runScenario(selectedScenario.name, environment);
+      setScenarioResults(result);
+      showSnackbar('Scenario executed successfully', 'success');
+    } catch (error) {
+      console.error('Failed to run scenario:', error);
+      showSnackbar('Failed to run scenario', 'error');
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -160,8 +164,22 @@ function App() {
             />
           )}
         </Box>
+        {scenarioResults && (
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1300, // Ensures it appears above other elements
+            boxShadow: 3,
+            borderRadius: 2,
+            backgroundColor: 'background.paper',
+          }}
+        >
+          <ScenarioResults results={scenarioResults} loading={loading} />
+        </Box>
+      )}
       </Box>
-
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
