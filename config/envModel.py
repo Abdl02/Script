@@ -3,15 +3,17 @@ from typing import Dict
 from dotenv import load_dotenv
 
 class Env:
-    def __init__(self, clientId: str, clientSecret: str, urlKeycloak: str, realm: str, envUrl: str):
+    def __init__(self, clientId: str, clientSecret: str, urlKeycloak: str, realm: str, envUrl: str, username: str = None, password: str = None):
         self.clientId = clientId
         self.clientSecret = clientSecret
         self.urlKeycloak = urlKeycloak
         self.realm = realm
         self.envUrl = envUrl
+        self.username = username
+        self.password = password
 
     def __str__(self):
-        return f"Env(clientId={self.clientId}, clientSecret={self.clientSecret}, urlKeycloak={self.urlKeycloak}, realm={self.realm}, envUrl={self.envUrl})"
+        return f"Env(clientId={self.clientId}, clientSecret={self.clientSecret}, urlKeycloak={self.urlKeycloak}, realm={self.realm}, envUrl={self.envUrl}, username={self.username}, password={self.password})"
 
 
 # Load environment variables from the .env file
@@ -24,21 +26,27 @@ DEFAULTS = {
         "clientSecret": os.getenv("DEV_CLIENT_SECRET", "defaultClientSecret"),
         "urlKeycloak": os.getenv("DEV_URL_KEYCLOAK", "https://default-keycloak.example.com"),
         "realm": os.getenv("DEV_REALM", "defaultRealm"),
-        "envUrl": os.getenv("DEV_ENV_URL", "https://default.example.com")
+        "envUrl": os.getenv("DEV_ENV_URL", "https://default.example.com"),
+        "username": os.getenv("DEV_USERNAME", "defaultUsername"),
+        "password": os.getenv("DEV_PASSWORD", "defaultPassword")
     },
     "localDev": {
         "clientId": os.getenv("LOCALDEV_CLIENT_ID", "3DnNzNhSw5p7qhtbg1WRqAnozYpO5hgy+PhXAMKIg1Y="),
         "clientSecret": os.getenv("LOCALDEV_CLIENT_SECRET", "bQrqlsv8ESFU9YwtqL3CCyiFIAdS2vcl"),
         "urlKeycloak": os.getenv("LOCALDEV_URL_KEYCLOAK", "http://localhost:8080"),
         "realm": os.getenv("LOCALDEV_REALM", "dgate"),
-        "envUrl": os.getenv("LOCALDEV_ENV_URL", "http://localhost:8099")
+        "envUrl": os.getenv("LOCALDEV_ENV_URL", "http://localhost:8099"),
+        "username": os.getenv("LOCALDEV_USERNAME", "admin"),
+        "password": os.getenv("LOCALDEV_PASSWORD", "admin")
     },
     "test": {
         "clientId": os.getenv("TEST_CLIENT_ID", "defaultTestClientId"),
         "clientSecret": os.getenv("TEST_CLIENT_SECRET", "defaultTestClientSecret"),
         "urlKeycloak": os.getenv("TEST_URL_KEYCLOAK", "https://default-test-keycloak.example.com"),
         "realm": os.getenv("TEST_REALM", "defaultTestRealm"),
-        "envUrl": os.getenv("TEST_ENV_URL", "https://default-test.example.com")
+        "envUrl": os.getenv("TEST_ENV_URL", "https://default-test.example.com"),
+        "username": os.getenv("TEST_USERNAME", "defaultTestUsername"),
+        "password": os.getenv("TEST_PASSWORD", "defaultTestPassword")
     }
 }
 
