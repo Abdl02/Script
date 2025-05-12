@@ -53,6 +53,10 @@ def manipulate_and_create_random_data(body: Any, apiPath: str):
     """
     Manipulate and create random data for both dict and list body types.
     """
+    # Convert dict with numeric keys to a list
+    if isinstance(body, dict) and all(k.isdigit() for k in body.keys()):
+        body = [body[k] for k in sorted(body.keys(), key=int)]
+
     # Fetch the apiKey and match it with the validator
     if apiPath.startswith("http"):
         apiKey = apiPath.split("/")[-1]
@@ -73,17 +77,14 @@ def manipulate_and_create_random_data(body: Any, apiPath: str):
     if isinstance(random_data, list):
         if isinstance(body, list):
             for i, item in enumerate(body):
-                if i < len(random_data) and isinstance(item, dict):
-                    for key, value in random_data[i].items():
+                if isinstance(item, dict):
+                    # Generate a new random item for each iteration
+                    random_item = validator.get_valid_body()[i % len(random_data)]
+                    for key, value in random_item.items():
                         if key not in item or item[key] is None:
                             item[key] = value
-        elif isinstance(body, dict):
-            for i, random_item in enumerate(random_data):
-                for key, value in random_item.items():
-                    if key not in body or body[key] is None:
-                        body[key] = value
         else:
-            raise TypeError("Body must be a dictionary or a list of dictionaries when random_data is a list.")
+            raise TypeError("Body must be a list of dictionaries when random_data is a list.")
     elif isinstance(random_data, dict):
         if isinstance(body, dict):
             for key, value in random_data.items():
@@ -99,8 +100,6 @@ def manipulate_and_create_random_data(body: Any, apiPath: str):
                     raise TypeError("List elements must be dictionaries.")
         else:
             raise TypeError("Body must be a dictionary or a list of dictionaries when random_data is a dictionary.")
-    else:
-        raise TypeError("Random data must be a dictionary or a list of dictionaries.")
 
     return body
 
