@@ -32,7 +32,6 @@ class APIRequestModel(BaseModel):
     headers: Dict[str, str] = {}
     body: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
-
 class ScenarioRequest(BaseModel):
     name: str
     id: Optional[str] = None
@@ -41,7 +40,6 @@ class ScenarioRequest(BaseModel):
     requests: Optional[List[APIRequestModel]] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-
 
 # ----- SCENARIO ROUTES -----
 @app.get("/api/scenarios")
