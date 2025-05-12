@@ -438,7 +438,7 @@ class ValidatorFactory:
     validators = {
         "api-specs": ApiSpecValidations,
         "environments": EnvironmentModelValidations,
-        "authenticators": AuthenticatorModelValidations,
+        "authenticator": AuthenticatorModelValidations,
         "policy": ApiPolicyValidations,
         "consumers": ConsumerModelValidations,
         "products": ProductModelValidations,
