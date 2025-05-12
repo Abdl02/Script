@@ -419,7 +419,6 @@ class SubscriptionModelValidations:
             body["planId"] = plan_id
         return body
 
-
 class GlobalPolicyValidations:
     """Validation rules for Global Policy endpoints"""
 
@@ -485,19 +484,76 @@ class PublicationFlowValidations:
             ]
         }
 
+class RevisionValidations:
+    """Validation rules for Revision endpoints"""
+
+    @staticmethod
+    def get_valid_body() -> Dict[str, Any]:
+        """Generate a valid revision body"""
+        return {
+            "objectId": EndpointValidations.generate_random_string(),
+            "objectType": random.choice(["GATEWAY_ENVIRONMENT", "API_SPEC", "AUTHENTICATOR", "EXCHANGE_POLICY", "GLOBAL_POLICY", "CONSUMER", "SUBSCRIPTION", "MONETIZATION_PRODUCT", "MONETIZATION_PLAN", "MESSAGE_BROKER", "STATIC_RESPONSE", "AUTHENTICATOR_CREDENTIALS"]),
+            # Add other fields based on the RevisionChangeModel
+        }
+
+class MessageBrokerValidations:
+    """Validation rules for Message Broker endpoints"""
+
+    @staticmethod
+    def get_valid_body() -> Dict[str, Any]:
+        """Generate a valid message broker body"""
+        return {
+            "name": EndpointValidations.generate_random_string(),
+            "host": "localhost",
+            "port": random.randint(1000, 9999),
+            "username": EndpointValidations.generate_random_string(),
+            "password": EndpointValidations.generate_random_string(),
+            "brokerProvider": random.choice(["RABBIT_MQ", "KAFKA"]),
+            # Add other fields based on the MessageBrokerModel
+        }
+
+class PolicyTemplateValidations:
+    """Validation rules for Policy Template endpoints"""
+
+    @staticmethod
+    def get_valid_body() -> Dict[str, Any]:
+        """Generate a valid policy template body"""
+        return {
+            "policyTemplateName": EndpointValidations.generate_random_string(),
+            "policyTemplateDesc": EndpointValidations.generate_random_string(),
+            "requestPolicies": [ApiPolicyValidations.get_valid_request_rate_limiter_policy()],
+            "responsePolicies": [ApiPolicyValidations.get_valid_response_cache_policy()],
+            # Add other fields based on the ExchangePolicyTemplateModel
+        }
+
+class WorkflowValidations:
+    """Validation rules for Workflow endpoints"""
+
+    @staticmethod
+    def get_valid_process_action_body() -> Dict[str, Any]:
+        """Generate a valid workflow process action body"""
+        return {
+            "reason": EndpointValidations.generate_random_string(),
+            "action": random.choice(["PROCESS_NEXT", "WITHDRAW", "TERMINATE"]),
+        }
+
 class ValidatorFactory:
     validators = {
         "api-specs": ApiSpecValidations,
         "environments": EnvironmentModelValidations,
-        "authenticators": AuthenticatorModelValidations,  # Add this
-        "credentials": CredentialModelValidations,  # Add this
+        "authenticators": AuthenticatorModelValidations,
+        "credentials": CredentialModelValidations,
         "policy": ApiPolicyValidations,
         "consumers": ConsumerModelValidations,
         "products": ProductModelValidations,
         "plans": PlanModelValidations,
         "subscriptions": SubscriptionModelValidations,
         "global_policy": GlobalPolicyValidations,
-        "publication_flow": PublicationFlowValidations
+        "publication_flow": PublicationFlowValidations,
+        "revisions": RevisionValidations,
+        "message_brokers": MessageBrokerValidations,
+        "policy_templates": PolicyTemplateValidations,
+        "wf": WorkflowValidations
     }
     @staticmethod
     def get_validator(endpoint_type: str):
