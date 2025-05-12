@@ -49,9 +49,10 @@ class ContactType(Enum):
     ADMINISTRATIVE = "ADMINISTRATIVE"
 
 
-def manipulate_and_create_random_data(body: Dict[str, Any], apiPath: str):
-    # Fetch the apiKey and match it with the validator
-
+def manipulate_and_create_random_data(body: Any, apiPath: str):
+    """
+    Manipulate and create random data for both dict and list body types.
+    """
     # Fetch the apiKey and match it with the validator
     if apiPath.startswith("http"):
         apiKey = apiPath.split("/")[-1]
@@ -69,11 +70,40 @@ def manipulate_and_create_random_data(body: Dict[str, Any], apiPath: str):
     random_data = validator.get_valid_body()
 
     # Merge the provided body with the random data
-    for key, value in random_data.items():
-        if key not in body or body[key] is None:
-            body[key] = value
+    if isinstance(random_data, list):
+        if isinstance(body, list):
+            for i, item in enumerate(body):
+                if i < len(random_data) and isinstance(item, dict):
+                    for key, value in random_data[i].items():
+                        if key not in item or item[key] is None:
+                            item[key] = value
+        elif isinstance(body, dict):
+            for i, random_item in enumerate(random_data):
+                for key, value in random_item.items():
+                    if key not in body or body[key] is None:
+                        body[key] = value
+        else:
+            raise TypeError("Body must be a dictionary or a list of dictionaries when random_data is a list.")
+    elif isinstance(random_data, dict):
+        if isinstance(body, dict):
+            for key, value in random_data.items():
+                if key not in body or body[key] is None:
+                    body[key] = value
+        elif isinstance(body, list):
+            for item in body:
+                if isinstance(item, dict):
+                    for key, value in random_data.items():
+                        if key not in item or item[key] is None:
+                            item[key] = value
+                else:
+                    raise TypeError("List elements must be dictionaries.")
+        else:
+            raise TypeError("Body must be a dictionary or a list of dictionaries when random_data is a dictionary.")
+    else:
+        raise TypeError("Random data must be a dictionary or a list of dictionaries.")
 
     return body
+
 
 # Validation rules based on ModelFactory
 class EndpointValidations:
@@ -179,21 +209,24 @@ class EnvironmentModelValidations:
             {"name": "Test", "url": "https://test.com", "type": "DEV", "backendServiceUrls": []}
         ]
 
-
-class AuthenticatorModelValidations:
-    """Validation rules for Authenticator endpoints"""
+class CredentialModelValidations:
+    """Validation rules for Credential endpoints"""
 
     @staticmethod
-    def get_valid_body(environment_id: str = None, auth_type: str = None) -> Dict[str, Any]:
-        """Generate a valid authenticator body"""
-        auth_type = auth_type or random.choice(list(AuthenticatorType)).value
-        body = {
-            "name": f"{auth_type}-Auth-{EndpointValidations.generate_random_string()}",
-            "type": auth_type,
-        }
-        if environment_id:
-            body["environmentModel"] = environment_id
-        return body
+    def get_valid_body() -> list:
+        """Generate a valid credential body"""
+        return [
+            {
+                "authenticatorType": f"{random.choice(list(AuthenticatorType)).value}",
+                "username": f"user-{EndpointValidations.generate_random_string()}",
+                "password": "password",
+                "clientId": f"client-{EndpointValidations.generate_random_string()}",
+                "apiKeyClientName": f"api-key-{EndpointValidations.generate_random_string()}",
+                "apiKey": f"api-key-{EndpointValidations.generate_random_string()}",
+                "apiKeySecret": f"api-key-secret-{EndpointValidations.generate_random_string()}"
+            }
+        ]
+
 
     @staticmethod
     def get_valid_basic_credential() -> Dict[str, Any]:
@@ -219,6 +252,26 @@ class AuthenticatorModelValidations:
             "authenticatorType": "API_KEY",
             "apiKeyClientName": f"api-key-{EndpointValidations.generate_random_string()}"
         }
+
+
+class AuthenticatorModelValidations:
+    """Validation rules for Authenticator endpoints"""
+
+    @staticmethod
+    def get_valid_body(environment_id: str = None, auth_type: str = None, tokenUrl:str = None, backendServiceUrls=None) -> Dict[str, Any]:
+        """Generate a valid authenticator body"""
+        if backendServiceUrls is None:
+            backendServiceUrls = []
+        auth_type = auth_type or random.choice(list(AuthenticatorType)).value
+        body = {
+            "name": f"{auth_type}-Auth-{EndpointValidations.generate_random_string()}",
+            "type": auth_type,
+            "tokenUrl" : tokenUrl or f"https://{auth_type.lower()}-token-url.com",
+            "backendServiceUrls": backendServiceUrls,
+        }
+        if environment_id:
+            body["environmentModel"] = environment_id
+        return body
 
 
 class ApiPolicyValidations:
@@ -438,7 +491,8 @@ class ValidatorFactory:
     validators = {
         "api-specs": ApiSpecValidations,
         "environments": EnvironmentModelValidations,
-        "authenticator": AuthenticatorModelValidations,
+        "authenticators": AuthenticatorModelValidations,  # Add this
+        "credentials": CredentialModelValidations,  # Add this
         "policy": ApiPolicyValidations,
         "consumers": ConsumerModelValidations,
         "products": ProductModelValidations,

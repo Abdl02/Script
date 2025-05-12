@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from runtime.flow_runner import run, save_scenario, list_scenarios
 from scenario.scenario import get_all_field_paths
@@ -30,7 +30,7 @@ class APIRequestModel(BaseModel):
     method: str
     url: str
     headers: Dict[str, str] = {}
-    body: Optional[Dict[str, Any]] = None
+    body: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
 
 
 class ScenarioRequest(BaseModel):
