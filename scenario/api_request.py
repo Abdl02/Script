@@ -79,14 +79,9 @@ class APIRequest:
         if not value or not isinstance(value, str):
             return value
 
-        # Debug: Print what we're trying to resolve
-        print(f"DEBUG: Original value: {value}")
-        print(f"DEBUG: Context: {json.dumps(context, indent=2)}")
-
         # Handle ${key.subkey} references
         def replace_dollar_reference(match):
             reference = match.group(1)
-            print(f"DEBUG: Trying to resolve reference: {reference}")
             try:
                 # Split reference into parts (e.g., "create_api_my.id" -> ["create_api_my", "id"])
                 parts = reference.split('.')
@@ -94,17 +89,12 @@ class APIRequest:
 
                 # Navigate through the context
                 for part in parts:
-                    print(f"DEBUG: Looking for part '{part}' in: {type(val)}")
                     if isinstance(val, dict) and part in val:
                         val = val[part]
-                        print(f"DEBUG: Found value: {val}")
                     else:
                         # Reference not found, return the original reference
-                        print(f"DEBUG: Part '{part}' not found!")
                         return match.group(0)
 
-                # Return the resolved value
-                print(f"DEBUG: Successfully resolved to: {str(val)}")
                 return str(val)
             except Exception as e:
                 print(f"Error resolving reference ${reference}: {e}")
@@ -118,7 +108,6 @@ class APIRequest:
             placeholder = f"{{{{{key}}}}}"
             value = value.replace(placeholder, str(val))
 
-        print(f"DEBUG: Final resolved value: {value}")
         return value
 
     def _template_body(self, body: Optional[Any], context: Dict[str, Any]) -> Optional[Any]:

@@ -1,0 +1,47 @@
+created_at: '2025-05-13T11:21:32.508341Z'
+description: Scenario for create_env_1
+id: id_1747031673824
+name: create_test_envs
+requests:
+- body:
+    backendServiceUrls:
+    - https://jsonplaceholder.typicode.com
+    - https://dummyjson.com
+    name: apigw_dev_1_test
+    url: https://apigw-dev-1.test.dgate.digitinary.net
+  headers: {}
+  method: POST
+  name: env_1
+  url: environments
+- body:
+    backendServiceUrls:
+    - https://dummyjson.com
+    - https://jsonplaceholder.typicode.com
+    name: apigw_prd_1_test
+    url: https://apigw-prd-1.test.dgate.digitinary.net
+  headers: {}
+  method: POST
+  name: env_2
+  url: environments
+- body:
+    backendServiceUrls:
+    - https://jsonplaceholder.typicode.com
+    - https://dummyjson.com
+    name: apigw_sdb_1_test
+    url: https://apigw-sdb-1.test.dgate.digitinary.net
+  headers: {}
+  method: POST
+  name: env_3
+  url: environments
+- body:
+    backendServiceUrls:
+    - https://dummyjson.com
+    - https://jsonplaceholder.typicode.com
+    name: apigw_stg_1_test
+    url: https://apigw-stg-1.test.dgate.digitinary.net
+  headers: {}
+  method: POST
+  name: env_4
+  url: environments
+updated_at: '2025-05-13T11:21:32.508341Z'
+version: 1.0.0

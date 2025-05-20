@@ -50,7 +50,6 @@ class TestScenario:
                 request.url = envUrl + "/" + request.url
 
 
-            print(f"Executing: {request.name}")
             try:
                 # If size of request_response_map is greater than 0, it means we have already executed some requests
                 if request_response_map:

@@ -47,7 +47,6 @@ def get_scenarios():
     """Return list of scenario names as strings to match frontend expectations"""
     try:
         scenarios = list_scenarios()
-        print(f"Retrieved scenarios: {scenarios}")
         return scenarios
     except Exception as e:
         print(f"Error retrieving scenarios: {str(e)}")
@@ -116,7 +115,6 @@ def run_scenario(name: str, body: dict = Body(...)):
     """Run a scenario by name and return the result"""
     try:
         environment = body.get("environment", "localDev")
-        print(f"Running scenario: {name} with environment: {environment}")
         return run(name, environment)
     except Exception as e:
         error_details = f"Error running scenario '{name}': {str(e)}"
@@ -143,8 +141,6 @@ def get_environments():
 @app.get("/item/fields/{endpoint_type}")
 def get_fields(endpoint_type: str):
     """Return available fields for an endpoint type with path property using validator"""
-    print(f"Retrieving fields for endpoint type: {endpoint_type}")
-
     splited = endpoint_type.split("/")
     all_validators = ValidatorFactory.validators
     validator = all_validators.get(splited[0])
@@ -196,9 +192,6 @@ def fetch_body_fields(endpoint_type: str, body: Dict[str, Any] = Body(default=No
     to dynamically extract fields based on the URL pattern.
     """
     try:
-        print(f"Fetching fields for endpoint type: {endpoint_type}")
-        url = body.get("url") if body else None
-
         from validation.endpoint_validations import ValidatorFactory
         from scenario.scenario import get_all_field_paths, get_value_from_path
 
