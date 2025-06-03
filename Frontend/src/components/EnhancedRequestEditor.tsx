@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { APIRequest } from 'types/models';
-import { 
-  Box, 
-  Accordion, 
-  AccordionSummary, 
-  AccordionDetails, 
-  Typography, 
-  IconButton, 
-  Tooltip, 
-  Tabs, 
-  Tab, 
-  Snackbar, 
-  Alert 
-} from '@mui/material';
+import { Card, Typography, TextField, Select, MenuItem, IconButton, FormControl,
+         InputLabel, Box, Button, Grid, Accordion, AccordionSummary,
+         AccordionDetails, Switch, FormControlLabel, Tabs, Tab, Tooltip, Alert, Snackbar,
+         Autocomplete } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import SaveIcon from '@mui/icons-material/Save';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import JsonView from '@uiw/react-json-view';
+import { FieldSelector } from './FieldSelector';
 import { api } from 'api/client';
-import { RequestBasicInfo, RequestBodyEditor, RequestAdvancedOptions } from './RequestEditor';
-import { getEndpointType } from '../utils/form/fieldUtils';
 
 interface EnhancedRequestEditorProps {
   request: APIRequest;
@@ -48,6 +41,89 @@ export const EnhancedRequestEditor: React.FC<EnhancedRequestEditorProps> = ({
 
   const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
 
+  const getEndpointType = (url: string): string => {
+    if (!url) return 'api-specs'; // Default if URL is empty
+
+    try {
+      const urlWithoutParams = url.split('?')[0]; // Remove query parameters
+      let path = urlWithoutParams;
+
+      // If it's a full URL, extract the pathname
+      if (url.includes('://')) {
+        try {
+          const urlObj = new URL(url);
+          path = urlObj.pathname;
+        } catch (e) {
+          // console.warn('URL parsing failed for:', url, 'Falling back to path string.');
+          // Path remains urlWithoutParams if URL parsing fails (e.g. for relative paths)
+        }
+      }
+
+      // Normalize path: remove leading/trailing slashes and split
+      const pathParts = path.replace(/^\/+|\/+$/g, '').split('/').filter(part => part.trim() !== '');
+
+      if (pathParts.length === 0) return 'api-specs'; // Default if path is effectively empty
+
+      // Check for known segments that indicate a specific type
+      // This list can be expanded based on common patterns in your API
+      const knownSegments: { [key: string]: string } = {
+        'api-specs': 'api-specs',
+        'consumers': 'consumers',
+        'environments': 'environments',
+        'products': 'products',
+        'plans': 'plans',
+        'subscriptions': 'subscriptions',
+        'users': 'users',
+        'groups': 'groups',
+        'roles': 'roles',
+        'policies': 'policies',
+        'authenticators': 'authenticators',
+        'credentials': 'credentials',
+        'message-brokers': 'message-brokers',
+        'templates': 'templates', // Added for template management
+        'item': 'item', // For generic item/fields endpoints
+        'wf': 'wf', // For workflow related endpoints
+        'audit-trails': 'audit-trails',
+        'licenses': 'licenses',
+        'lookups': 'lookups',
+        'notifications': 'notifications',
+        'publication-flow-configs': 'publication-flow-configs',
+        'revisions': 'revisions',
+        'analytics': 'analytics'
+        // Add more known top-level or common segments and their corresponding types
+      };
+
+      // Iterate through path parts to find a known segment
+      // Prioritize segments like '/api/v1/products' -> 'products'
+      // Or '/products' -> 'products'
+      for (let i = 0; i < pathParts.length; i++) {
+        const currentPart = pathParts[i].toLowerCase();
+        if (knownSegments[currentPart]) {
+          // If 'api' is followed by a known segment, prefer that (e.g., /api/products)
+          if (currentPart === 'api' && i + 1 < pathParts.length && knownSegments[pathParts[i+1].toLowerCase()]) {
+            return knownSegments[pathParts[i+1].toLowerCase()];
+          }
+          return knownSegments[currentPart];
+        }
+      }
+
+      // Fallback for versioned paths or simple first segment if no known segment found
+      // e.g., /v1/my-custom-endpoint -> my-custom-endpoint
+      // e.g., /my-custom-endpoint -> my-custom-endpoint
+      if (pathParts.length > 0) {
+        const firstSegment = pathParts[0].toLowerCase();
+        if (firstSegment.startsWith('v') && /v\d+/.test(firstSegment) && pathParts.length > 1) {
+          return pathParts[1].toLowerCase(); // e.g., v1/users -> users
+        }
+        return firstSegment; // Fallback to the first significant segment
+      }
+
+      return 'api-specs'; // Default fallback if no other logic matches
+    } catch (error) {
+      console.error('Error extracting endpoint type from URL:', url, error);
+      return 'api-specs'; // Default on error
+    }
+  };
 
 
   useEffect(() => {
