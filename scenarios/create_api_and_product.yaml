@@ -1,0 +1,161 @@
+created_at: '2025-06-11T14:59:46.619597Z'
+description: Scenario for create_api_and_product
+id: id_1746711451758
+name: create_api_and_product
+requests:
+- body:
+    authType: BASIC
+    description: Fault cxManagement API
+    metaData:
+      version: '1.5'
+  headers: {}
+  method: POST
+  name: create-api
+  url: api-specs
+- body:
+    authType: BASIC
+    description: Carts API
+    metaData:
+      version: '1.5'
+  headers: {}
+  method: POST
+  name: create-api-
+  url: api-specs
+- body:
+    authType: BASIC
+    description: Comments API
+    metaData:
+      version: '1.7'
+    style: REST
+    type: PUBLIC
+  headers: {}
+  method: POST
+  name: create-api3
+  url: api-specs
+- body:
+    authType: BASIC
+    description: Todos API
+    metaData:
+      version: '2'
+    style: REST
+    type: PUBLIC
+  headers: {}
+  method: POST
+  name: create-api4
+  url: api-specs
+- body:
+    apiSpecs:
+    - apiSpecId: '{{create-api.apiSpecId}}'
+  headers: {}
+  method: POST
+  name: create_product
+  url: products
+- body:
+    apiSpecs:
+    - apiSpecId: '{{create-api2.apiSpecId}}'
+  headers:
+    x-dgate: adsadasdasdasdas
+  method: POST
+  name: create_product2
+  url: products
+- body:
+    apiSpecs:
+    - apiSpecId: '{{create-api3.apiSpecId}}'
+    - apiSpecId: '{{create-api4.apiSpecId}}'
+    premium: false
+  headers: {}
+  method: POST
+  name: create_product3
+  url: products
+- body:
+    definitionType: STANDARD
+    desc: Dummy Plan
+    lifetimeCharge: '10000'
+    monthlyCharge: '10'
+    priceType: USAGE_BASED_CHARGES
+    productPlanPrices:
+    - monthlyPrice: 12
+      priceType: USAGE_BASED_CHARGES
+      product:
+        productId: '{{create_product.productId}}'
+      subscriptionPeriodOptions:
+      - MONTHLY
+    renewalTypeOptions:
+    - AUTO
+    subscriptionPeriodOptions:
+    - MONTHLY
+    yearlyCharge: '100'
+  headers: {}
+  method: POST
+  name: create_plan1
+  url: plans
+- body:
+    definitionType: STANDARD
+    desc: Premium Plan
+    lifetimeCharge: '20000'
+    monthlyCharge: '20'
+    priceType: USAGE_BASED_CHARGES
+    productPlanPrices:
+    - monthlyPrice: 25
+      priceType: USAGE_BASED_CHARGES
+      product:
+        productId: '{{create_product2.productId}}'
+      subscriptionPeriodOptions:
+      - MONTHLY
+    renewalTypeOptions:
+    - AUTO
+    subscriptionPeriodOptions:
+    - MONTHLY
+    yearlyCharge: '200'
+  headers: {}
+  method: POST
+  name: create_plan2
+  url: plans
+- body:
+    definitionType: ENTERPRISE
+    desc: Basic Plan
+    lifetimeCharge: '5000'
+    monthlyCharge: '5'
+    premium: false
+    priceType: USAGE_BASED_CHARGES
+    productPlanPrices:
+    - monthlyPrice: 6
+      priceType: USAGE_BASED_CHARGES
+      product:
+        productId: '{{create_product3.productId}}'
+      subscriptionPeriodOptions:
+      - MONTHLY
+    renewalTypeOptions:
+    - AUTO
+    subscriptionPeriodOptions:
+    - MONTHLY
+    yearlyCharge: '50'
+  headers: {}
+  method: POST
+  name: create_plan3
+  url: plans
+- body:
+    definitionType: ENTERPRISE
+    desc: Basic Plan
+    lifetimeCharge: '5000'
+    monthlyCharge: '5'
+    premium: false
+    priceType: USAGE_BASED_CHARGES
+    productPlanPrices:
+    - monthlyPrice: 6
+      priceType: USAGE_BASED_CHARGES
+      product:
+        productId: '{{create_product3.productId}}'
+      subscriptionPeriodOptions:
+      - MONTHLY
+    renewalTypeOptions:
+    - AUTO
+    subscriptionPeriodOptions:
+    - MONTHLY
+    yearlyCharge: '50'
+  headers: {}
+  method: POST
+  name: create_plan3_(Copy)
+  url: plans
+updated_at: '2025-06-11T14:59:46.619597Z'
+version: 1.0.0

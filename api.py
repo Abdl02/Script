@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any, Union
@@ -12,47 +12,13 @@ import json
 import os
 import traceback
 import logging  # Import logging
+from database import get_db
+from sqlalchemy.orm import Session
+from repositories import template_repository
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# --- In-memory store for body templates (for demonstration) ---
-# In a real application, this would be a database.
-body_template_store: Dict[str, Dict[str, Any]] = {
-    "api-specs": {
-        "Basic API Spec": {
-            "name": "sample-api-from-template",
-            "description": "Sample API description from template",
-            "contextPath": "/sample-api-template",
-            "backendServiceUrl": "https://jsonplaceholder.typicode.com",
-            "status": "DRAFT",
-            "type": "PRIVATE",
-            "style": "REST",
-            "authType": "API_KEY",
-            "metaData": {
-                "version": "1.0.0",
-                "owner": "template-owner",
-                "category": "Template Category",
-                "tags": ["template", "api", "example"]
-            },
-            "addVersionToContextPath": True
-        }
-    },
-    "products": {
-        "Standard Product": {
-            "name": "standard-product-template",
-            "desc": "A standard product from a template",
-            "version": "1.0.0",
-            "apiSpecs": [],
-            "segment": "General",
-            "premium": False,
-            "status": "DRAFT"
-        }
-    }
-    # Add more endpoint types and their templates as needed
-}
-# --- End of in-memory store ---
 
 app = FastAPI()
 
@@ -380,13 +346,21 @@ def fetch_body_fields(endpoint_type: str, body: Dict[str, Any] = Body(default_fa
 
 
 @app.get("/api/templates/body/{endpoint_type}")
-def get_body_templates(endpoint_type: str):
-    """Return body templates for the specified endpoint type."""
+def get_body_templates(endpoint_type: str, db: Session = Depends(get_db)):
+    """Return body templates for the specified endpoint type from the database."""
     logger.info(f"Request for body templates for endpoint_type: {endpoint_type}")
     normalized_type = endpoint_type.lower()
-    templates = body_template_store.get(normalized_type, {})
 
-    # If no specific templates, try to generate one from validator
+    # Get templates from database
+    db_templates = template_repository.get_templates_by_type(db, normalized_type)
+    templates = {}
+
+    # Convert database templates to dictionary format expected by frontend
+    for template in db_templates:
+        template_dict = template.to_dict()
+        templates[template_dict["name"]] = template_dict["body"]
+
+    # If no specific templates in database, try to generate one from validator
     if not templates:
         logger.info(f"No stored templates for '{normalized_type}', attempting to generate from validator.")
         from validation.endpoint_validations import ValidatorFactory  # Local import
@@ -395,8 +369,11 @@ def get_body_templates(endpoint_type: str):
             try:
                 generated_template_body = validator_class.get_valid_body()
                 template_name = f"Default {normalized_type.capitalize()} Template"
-                templates = {template_name: generated_template_body}
-                logger.info(f"Generated default template for '{normalized_type}'.")
+                templates[template_name] = generated_template_body
+
+                # Save the generated template to the database
+                template_repository.create_template(db, template_name, normalized_type, generated_template_body)
+                logger.info(f"Generated and saved default template for '{normalized_type}' to database.")
             except Exception as e:
                 logger.error(f"Error generating default template for '{normalized_type}': {str(e)}")
         else:
@@ -408,19 +385,33 @@ def get_body_templates(endpoint_type: str):
 
 
 @app.post("/api/templates/body/{endpoint_type}")
-def save_body_template(endpoint_type: str, name: str = Body(...), body: Dict[str, Any] = Body(...)):
-    """Save a new body template (in-memory for now)."""
+def save_body_template(endpoint_type: str, name: str = Body(...), body: Dict[str, Any] = Body(...), db: Session = Depends(get_db)):
+    """Save a new body template to the database."""
     logger.info(f"Request to save body template '{name}' for endpoint_type: {endpoint_type}")
     normalized_type = endpoint_type.lower()
-    if normalized_type not in body_template_store:
-        body_template_store[normalized_type] = {}
 
-    if name in body_template_store[normalized_type]:
-        logger.warning(f"Template '{name}' for '{normalized_type}' already exists. Overwriting.")
+    # Check if template already exists
+    existing_template = template_repository.get_template_by_name_and_type(db, name, normalized_type)
 
-    body_template_store[normalized_type][name] = body
-    logger.info(f"Template '{name}' for '{normalized_type}' saved successfully.")
-    return {"message": f"Template '{name}' saved for endpoint type '{endpoint_type}'.", "template_name": name}
+    if existing_template:
+        logger.warning(f"Template '{name}' for '{normalized_type}' already exists. Updating.")
+        # Update existing template
+        updated_template = template_repository.update_template(db, name, normalized_type, body)
+        if updated_template:
+            logger.info(f"Template '{name}' for '{normalized_type}' updated successfully.")
+            return {"message": f"Template '{name}' updated for endpoint type '{endpoint_type}'.", "template_name": name}
+        else:
+            logger.error(f"Failed to update template '{name}' for '{normalized_type}'.")
+            raise HTTPException(status_code=500, detail=f"Failed to update template '{name}'")
+    else:
+        # Create new template
+        new_template = template_repository.create_template(db, name, normalized_type, body)
+        if new_template:
+            logger.info(f"Template '{name}' for '{normalized_type}' created successfully.")
+            return {"message": f"Template '{name}' saved for endpoint type '{endpoint_type}'.", "template_name": name}
+        else:
+            logger.error(f"Failed to create template '{name}' for '{normalized_type}'.")
+            raise HTTPException(status_code=500, detail=f"Failed to create template '{name}'")
 
 
 @app.get("/api/urls")

@@ -1,19 +1,20 @@
 import requests
 import json
 import re
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from util.token_util import *
 from config.config import Config
 
 
 class APIRequest:
     def __init__(self, name: str, method: str, url: str, headers: Optional[Dict[str, str]] = None,
-                 body: Optional[Any] = None):
+                 body: Optional[Any] = None, assertions: Optional[List[Dict[str, Any]]] = None):
         self.name = name
         self.method = method.upper()
         self.url = url
         self.headers = headers if headers is not None else {}
         self.body = body
+        self.assertions = assertions
         self.response = None
         self.saved_data: Dict[str, Any] = {}
 

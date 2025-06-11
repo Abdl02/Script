@@ -8,3 +8,8 @@ urllib3==2.2.1
 certifi==2024.2.2
 idna==3.6
 charset-normalizer==3.3.2
+sqlalchemy==2.0.27
+fastapi==0.109.2
+pyodbc==5.0.1
+uvicorn==0.27.0
+pydantic==2.5.2
