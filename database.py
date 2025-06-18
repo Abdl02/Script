@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from config.settings import sql_alchemy_database_url, sqlite_database_url  # Import from settings.py
+from sqlalchemy.sql import text
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -26,7 +27,7 @@ try:
 
     # Test the connection
     with engine.connect() as connection:
-        connection.execute("SELECT 1")
+        connection.execute(text("SELECT 1"))
     logger.info("Successfully connected to SQL Server")
 
 except Exception as e:
